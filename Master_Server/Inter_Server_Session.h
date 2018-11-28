@@ -18,6 +18,7 @@ class Server_Participant
 public:
     virtual ~Server_Participant() {}
     virtual void deliver(const Server_Message& msg) = 0;
+    virtual Server_Message get_message() = 0;
 };
 
 class Inter_Server_Session: public Server_Participant,
@@ -38,6 +39,8 @@ private:
     void do_read_body();
 
     void do_write();
+
+    Server_Message get_message();
 
     Server_Group& group_;
     tcp::socket socket_;

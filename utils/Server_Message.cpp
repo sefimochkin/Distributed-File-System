@@ -12,6 +12,12 @@ Server_Message::Server_Message()
         : body_length_(0)
         {}
 
+Server_Message:: Server_Message(char* data){
+    body_length(std::strlen(data));
+    std::memcpy(data_ + header_length, data, body_length_);
+    encode_header();
+}
+
 void Server_Message::make_message(char * message){
     body_length(std::strlen(message));
     std::memcpy(data_ + header_length, message, body_length_);

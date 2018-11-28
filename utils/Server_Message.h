@@ -17,6 +17,7 @@ public:
     enum { max_body_length = 512 };
 
     Server_Message();
+    Server_Message(char* data);
 
     void make_message(char * message);
 

@@ -11,6 +11,7 @@
 #include <boost/asio.hpp>
 #include "../utils/Server_Message.h"
 #include <fstream>
+#include <string>
 
 using boost::asio::ip::tcp;
 
@@ -88,7 +89,10 @@ private:
                                     if (!ec)
                                     {
                                         std::cout.write(read_msg_.body(), read_msg_.body_length());
+
                                         std::cout << "\n";
+                                        parse_answer_and_reply();
+
                                         do_read_header();
                                     }
                                     else
@@ -118,6 +122,27 @@ private:
                                          socket_.close();
                                      }
                                  });
+    }
+
+    void parse_answer_and_reply(){
+        std::string answer = std::string(read_msg_.body());
+
+
+        if (answer.find(std::string("ping")) == 0) {
+            Server_Message msg = Server_Message();
+            msg.make_message("received ping back");
+            write(msg);
+        }
+        else if (answer.find(std::string("start")) == 0) {
+            write(Server_Message("started"));
+        }
+        else if (answer.find(std::string("overall size")) == 0) {
+            char ans[20];
+            snprintf(ans, 20, "overall size: %d", all_memory);
+            write(Server_Message(ans));
+        }
+
+
     }
 
     void parse_settings(){

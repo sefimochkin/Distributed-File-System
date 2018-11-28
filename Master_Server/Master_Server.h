@@ -15,45 +15,17 @@
 #include <queue>
 #include <mutex>
 #include <algorithm>
-#include <random>
 
-
-
-//std::random_device rd;     // only used once to initialise (seed) engine
-//std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-
-
-
-struct Server_And_Message{
-
-    Server_And_Message(server_participant_ptr server_, Server_Message message_){
-        server = server_;
-        message = message_;
-    }
-
-    server_participant_ptr server;
-    Server_Message message;
-};
 
 
 using boost::asio::ip::tcp;
 
 
-void send_messages_from_queue(server_participant_ptr server, Server_Message message);
+//void send_messages_from_queue(server_participant_ptr server, Server_Message message);
 //void send_messages_from_queue(std::queue<Server_And_Message> *output_queue, std::mutex *output_queue_mutex);
 
-/*
-void receive_messages(std::set<server_participant_ptr> slave_servers){
-    if (!slave_servers.empty()) {
-        std::uniform_int_distribution<int> uni(0, slave_servers.size() - 1);
-        int random_slave = uni(rng);
 
-        auto it(slave_servers.begin());
-        advance(it, random_slave);
-
-    }
-
-}*/
+//void receive_messages(std::vector<server_participant_ptr> slave_servers, boost::asio::io_service& io_service);
 
 class Master_Server
 {
@@ -64,6 +36,7 @@ public:
               socket_(io_service), ping_timer(io_service, boost::posix_time::seconds(ping_period)),
               strand(io_service), io_service_(io_service)
     {
+        boost::asio::io_service::work work(io_service);
         slaves_group = Server_Group();
         for (std::size_t i = 0; i < number_of_worker_threads; ++i)
             worker_threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
@@ -73,17 +46,8 @@ public:
     }
 
     void ping(){
-        Server_Message msg = Server_Message();
-        msg.make_message("ping");
 
-        for (const auto &participant : slaves_group.participants_) {
-            io_service_.post(boost::bind(&send_messages_from_queue, participant, msg));
-            //Server_And_Message *package = new Server_And_Message(participant, msg);
-            //output_queue_mutex.lock();
-            //output_queue.push(*package);
-            //output_queue_mutex.unlock();
-        }
-        //slaves_group.deliver(msg);
+        slaves_group.ping();
 
         printf("Slave Server#: %d\n", slaves_group.len());
 
@@ -114,15 +78,12 @@ private:
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     Server_Group slaves_group;
-    int ping_period = 10;
+    int ping_period = 60;
     boost::asio::deadline_timer ping_timer;
     boost::asio::io_service::strand strand;
     boost::thread_group worker_threads;
     int number_of_worker_threads = 4;
 
-
-    std::mutex output_queue_mutex;
-    std::queue<Server_And_Message> output_queue;
 
 };
 

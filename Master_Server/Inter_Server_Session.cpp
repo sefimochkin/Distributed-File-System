@@ -50,7 +50,9 @@ void Inter_Server_Session::do_read_body()
                             {
                                 if (!ec)
                                 {
-                                    group_.deliver(read_msg_);
+                                    printf("%s\n", read_msg_.body());
+                                    group_.parse(shared_from_this(), read_msg_.body());
+
                                     do_read_header();
                                 }
                                 else
@@ -81,4 +83,9 @@ void Inter_Server_Session::do_write()
                                      group_.leave(shared_from_this());
                                  }
                              });
+}
+
+Server_Message Inter_Server_Session::get_message(){
+    do_read_header();
+    return read_msg_;
 }

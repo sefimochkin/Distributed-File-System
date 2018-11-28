@@ -1,12 +1,11 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include "Master_Server/Master_Server.h"
+#include <string>
 
 int main() {
-    printf("shit");
 
     boost::asio::io_service io_service;
-
 
 
     tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 8000);

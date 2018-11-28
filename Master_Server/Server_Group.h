@@ -5,7 +5,7 @@
 #ifndef DFS_SERVER_GROUP_H
 #define DFS_SERVER_GROUP_H
 
-#include <set>
+#include <vector>
 #include "../utils/Server_Message.h"
 #include "Inter_Server_Session.h"
 
@@ -16,7 +16,7 @@ class Server_Group
 {
 public:
 
-    Server_Group();
+  Server_Group();
 
   void join(server_participant_ptr server);
 
@@ -26,10 +26,15 @@ public:
 
   int len();
 
+  void ping();
 
-  std::set<server_participant_ptr> participants_;
+  void parse(server_participant_ptr slave, char* msg);
+
+
 private:
-  enum { max_recent_msgs = 100 };
-  chat_message_queue recent_msgs_;
+    std::vector<server_participant_ptr> participants_;
+    enum { max_recent_msgs = 100 };
+    chat_message_queue recent_msgs_;
+    int sum_of_overall_memory = 0;
 };
 #endif //DFS_SERVER_GROUP_H
