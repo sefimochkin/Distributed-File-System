@@ -52,6 +52,21 @@ void Server_Group::parse(server_participant_ptr slave, char* msg){
         int overall_memory_of_slave;
         sscanf(answer.c_str(), "overall size: %d", &overall_memory_of_slave);
         sum_of_overall_memory += overall_memory_of_slave;
+        slave_info server_info(slave, overall_memory_of_slave, 0);
+        if (participants_.size() % 2 == 0){
+            server_info.is_main = true;
+        }
+        else{
+            for(auto info_it : slaves_info){
+                if (info_it.second.is_main && info_it.second.backup_slave == nullptr){
+                    info_it.second.backup_slave = slave;
+                    server_info.is_backup = true;
+                    server_info.server_to_backup = info_it.first;
+                    break;
+                }
+            }
+        }
+        slaves_info.insert({slave, server_info});
     }
 }
 
