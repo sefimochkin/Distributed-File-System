@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 
     tcp::resolver resolver(io_service);
     auto endpoint_iterator = resolver.resolve({ boost::asio::ip::address::from_string("127.0.0.1"), 8000 });
-    chat_client c(io_service, endpoint_iterator);
+    Slave_Server c(io_service, endpoint_iterator);
 
     io_service.run();
 

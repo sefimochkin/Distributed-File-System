@@ -1,9 +1,10 @@
 //
-// Created by Сергей Ефимочкин on 11.11.2018.
+// Created by Сергей Ефимочкин on 2019-01-28.
 //
 
-#ifndef DFS_SLAVE_SERVER_H
-#define DFS_SLAVE_SERVER_H
+#ifndef DFS_SLAVE_CLIENT_SERVER_H
+#define DFS_SLAVE_CLIENT_SERVER_H
+
 #include <cstdlib>
 #include <deque>
 #include <iostream>
@@ -15,22 +16,18 @@
 
 using boost::asio::ip::tcp;
 
-class Slave_Server
+class Client_Server
 {
 public:
-    Slave_Server(boost::asio::io_service& io_service,
+    Client_Server(boost::asio::io_service& io_service,
                 tcp::resolver::iterator endpoint_iterator)
             : io_service_(io_service),
               socket_(io_service)
     {
-        parse_settings();
-        initial_reserve_memory();
-        reserved_memory = 0;
         do_connect(endpoint_iterator);
         Server_Message msg = Server_Message();
-        msg.make_message("slave");
+        msg.make_message("client");
         write(msg);
-
     }
 
     void write(const Server_Message& msg)
@@ -138,36 +135,12 @@ private:
             write(msg);
         }
         else if (answer.find(std::string("start")) == 0) {
-            write(Server_Message("started"));
-        }
-        else if (answer.find(std::string("overall size")) == 0) {
-            char ans[20];
-            snprintf(ans, 20, "overall size: %d", all_memory);
-            write(Server_Message(ans));
+            write(Server_Message("client"));
         }
 
 
     }
 
-    void parse_settings(){
-        std::ifstream infile("../settings/slave_server_config.txt");
-        char config_name[30];
-        int value;
-        while (infile >> config_name >> value)
-        {
-            if(strcmp(config_name, "memory_to_reserve") == 0)
-                all_memory = value;
-        }
-    }
-
-    void initial_reserve_memory(){}
-
-    int get_size_of_free_memory(){
-        return all_memory - reserved_memory;
-    }
-
-    void reserve_memory(int number_of_bytes);
-    void free_memory(int number_of_bytes);
 
 
 
@@ -176,12 +149,8 @@ private:
     tcp::socket socket_;
     Server_Message read_msg_;
     chat_message_queue write_msgs_;
-    int all_memory;
-    int reserved_memory;
 };
 
 
 
-#endif //DFS_SLAVE_SERVER_H
-
-
+#endif //DFS_SLAVE_CLIENT_SERVER_H

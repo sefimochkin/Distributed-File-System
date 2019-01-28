@@ -38,6 +38,7 @@ public:
     {
         boost::asio::io_service::work work(io_service);
         slaves_group = Server_Group();
+        clients_group = Server_Group();
         for (std::size_t i = 0; i < number_of_worker_threads; ++i)
             worker_threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
         ping_timer.async_wait(strand.wrap(boost::bind(&Master_Server::ping, this)));
@@ -63,7 +64,7 @@ private:
                                    if (!ec)
                                    {
                                        printf("connected!");
-                                       std::make_shared<Inter_Server_Session>(std::move(socket_), slaves_group)->start();
+                                       std::make_shared<Inter_Server_Session>(std::move(socket_), slaves_group, clients_group)->start();
                                    }
                                    else{
 
@@ -78,6 +79,7 @@ private:
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     Server_Group slaves_group;
+    Server_Group clients_group;
     int ping_period = 60;
     boost::asio::deadline_timer ping_timer;
     boost::asio::io_service::strand strand;

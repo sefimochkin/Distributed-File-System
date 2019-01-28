@@ -1,0 +1,12 @@
+#TODOS:
+
+1. Add base classes for server-types and server_groups-types and inherit current classes from them
+2. Add a middle- inter_server_session for determining if the new connection if a client or a slave and then adding them to the right group
+3. Add a protocol and functionality for storing and retrieving a basic string from client to slave and vice-versa
+4. Add a protocol and functionality for sending fs commands from client to server
+5. Add fs functionality for server(only directory and files names)
+6. Add fs functionality for slaves(index of address block equals number of file_block in the system)
+7. Combine all functionality of fs (one file - one server)
+8. Add fragmentation of files (one file - different servers)
+9. Add periodical backing up of servers
+10. TEST TEST TEST and CLEAN UP
