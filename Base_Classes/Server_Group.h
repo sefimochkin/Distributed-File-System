@@ -1,13 +1,13 @@
 //
-// Created by Сергей Ефимочкин on 22.11.2018.
+// Created by Сергей Ефимочкин on 2019-01-30.
 //
 
-#ifndef DFS_SERVER_GROUP_H
-#define DFS_SERVER_GROUP_H
+#ifndef DFS_BASE_SERVER_GROUP_H
+#define DFS_BASE_SERVER_GROUP_H
 
 #include <vector>
 #include "../utils/Server_Message.h"
-#include "Inter_Server_Session.h"
+#include "../Master_Server/Inter_Server_Session.h"
 #include <unordered_map>
 
 class Server_Participant;
@@ -15,7 +15,7 @@ typedef std::shared_ptr<Server_Participant> server_participant_ptr;
 
 struct slave_info{
     slave_info(server_participant_ptr owner_, int overall_memory_, int reserved_memory_) :
-    owner(owner_), overall_memory(overall_memory_), reserved_memory(reserved_memory_){}
+            owner(owner_), overall_memory(overall_memory_), reserved_memory(reserved_memory_){}
 
     server_participant_ptr owner;
 
@@ -33,19 +33,21 @@ class Server_Group
 {
 public:
 
-  Server_Group();
+    Server_Group();
 
-  void join(server_participant_ptr server);
+    void join(server_participant_ptr server);
 
-  void leave(server_participant_ptr server);
+    void leave(server_participant_ptr server);
 
-  void deliver(const Server_Message& msg);
+    void deliver(const Server_Message& msg);
 
-  int len();
+    int len();
 
-  void ping();
+    void ping();
 
-  void parse(server_participant_ptr slave, char* msg);
+    virtual void parse(server_participant_ptr slave, char* msg) = 0;
+
+    virtual ~Server_Group() = default;
 
 
 private:
@@ -56,4 +58,4 @@ private:
     std::unordered_map<server_participant_ptr, slave_info> slaves_info;
 
 };
-#endif //DFS_SERVER_GROUP_H
+#endif //DFS_BASE_SERVER_GROUP_H

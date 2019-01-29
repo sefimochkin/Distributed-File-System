@@ -6,7 +6,7 @@
 #define DFS_INTER_SERVER_SESSION_H
 #include <boost/asio.hpp>
 #include <deque>
-#include "Server_Group.h"
+#include "../Base_Classes/Server_Group.h"
 #include "../utils/Server_Message.h"
 
 using boost::asio::ip::tcp;

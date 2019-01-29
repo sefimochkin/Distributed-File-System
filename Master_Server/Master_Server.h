@@ -6,7 +6,7 @@
 #define FS_Master_Server_H
 
 #include <boost/asio.hpp>
-#include "Server_Group.h"
+#include "Slaves_Group.h"
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Inter_Server_Session.h"
@@ -37,8 +37,8 @@ public:
               strand(io_service), io_service_(io_service)
     {
         boost::asio::io_service::work work(io_service);
-        slaves_group = Server_Group();
-        clients_group = Server_Group();
+        slaves_group = Slaves_Group();
+        clients_group = Slaves_Group();
         for (std::size_t i = 0; i < number_of_worker_threads; ++i)
             worker_threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
         ping_timer.async_wait(strand.wrap(boost::bind(&Master_Server::ping, this)));
@@ -78,8 +78,8 @@ private:
     boost::asio::io_service& io_service_;
     tcp::acceptor acceptor_;
     tcp::socket socket_;
-    Server_Group slaves_group;
-    Server_Group clients_group;
+    Slaves_Group slaves_group;
+    Slaves_Group clients_group;
     int ping_period = 60;
     boost::asio::deadline_timer ping_timer;
     boost::asio::io_service::strand strand;
