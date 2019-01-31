@@ -126,7 +126,7 @@ private:
 
 
 
-private:
+protected:
     boost::asio::io_service& io_service_;
     tcp::socket socket_;
     Server_Message read_msg_;

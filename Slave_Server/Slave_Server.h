@@ -21,9 +21,7 @@ class Slave_Server : public Server
 public:
     Slave_Server(boost::asio::io_service& io_service,
                 tcp::resolver::iterator endpoint_iterator):
-            Server(io_service, endpoint_iterator),
-            io_service_(io_service),
-            socket_(io_service)
+            Server(io_service, endpoint_iterator)
     {
         parse_settings();
         initial_reserve_memory();
@@ -83,10 +81,6 @@ private:
 
 
 private:
-    boost::asio::io_service& io_service_;
-    tcp::socket socket_;
-    Server_Message read_msg_;
-    chat_message_queue write_msgs_;
     int all_memory;
     int reserved_memory;
 };

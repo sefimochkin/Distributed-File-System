@@ -9,7 +9,7 @@
 #include "Slaves_Group.h"
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "Inter_Server_Session.h"
+#include "Initializing_ISS.h"
 //#include <boost/lockfree/queue.hpp>
 #include <boost/thread/thread.hpp>
 #include <queue>
@@ -64,7 +64,7 @@ private:
                                    if (!ec)
                                    {
                                        printf("connected!");
-                                       std::make_shared<Inter_Server_Session>(std::move(socket_), slaves_group, clients_group)->start();
+                                       std::make_shared<Initializing_ISS>(std::move(socket_), slaves_group, clients_group)->start();
                                    }
                                    else{
 

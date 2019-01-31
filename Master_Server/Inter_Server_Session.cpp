@@ -9,7 +9,7 @@
 
 void Inter_Server_Session::start()
 {
-    //group_.join(shared_from_this());
+    group_.join(shared_from_this());
     do_read_header();
 }
 
@@ -39,6 +39,7 @@ void Inter_Server_Session::do_read_header()
                                     group_.leave(shared_from_this());
                                 }
                             });
+
 }
 
 void Inter_Server_Session::do_read_body()
@@ -51,20 +52,7 @@ void Inter_Server_Session::do_read_body()
                                 if (!ec)
                                 {
                                     printf("%s\n", read_msg_.body());
-                                    if (figured_out_group == true)
-                                        group_.parse(shared_from_this(), read_msg_.body());
-                                    else{
-                                        std::string answer = std::string(read_msg_.body());
-                                        if (answer.find(std::string("client")) == 0){
-                                            printf("client connected!\n");
-                                            group_ = clients_group_;
-                                        }
-                                        else if (answer.find(std::string("slave")) == 0){
-                                            printf("slave connected!\n");
-                                        }
-                                        group_.join(shared_from_this());
-                                        figured_out_group = true;
-                                    }
+                                    group_.parse(shared_from_this(), read_msg_.body());
 
                                     do_read_header();
                                 }

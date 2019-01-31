@@ -16,9 +16,7 @@ class Client_Server : public Server
 public:
     Client_Server(boost::asio::io_service& io_service,
                 tcp::resolver::iterator endpoint_iterator) :
-                Server(io_service, endpoint_iterator),
-                io_service_(io_service),
-                socket_(io_service)
+                Server(io_service, endpoint_iterator)
     {
         Server_Message msg = Server_Message();
         msg.make_message("client");
@@ -44,16 +42,12 @@ private:
             write(msg);
         }
         else if (answer.find(std::string("start")) == 0) {
-            write(Server_Message("client"));
+            write(Server_Message("started"));
         }
 
 
     }
 
-    boost::asio::io_service& io_service_;
-    tcp::socket socket_;
-    Server_Message read_msg_;
-    chat_message_queue write_msgs_;
 };
 
 

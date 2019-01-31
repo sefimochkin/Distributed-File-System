@@ -25,24 +25,24 @@ class Inter_Server_Session: public Server_Participant,
                             public std::enable_shared_from_this<Inter_Server_Session>
 {
 public:
-    Inter_Server_Session(tcp::socket socket, Server_Group& slave_group, Server_Group& clients_group)
-            : socket_(std::move(socket)), clients_group_(clients_group), group_(slave_group){
+    Inter_Server_Session(tcp::socket socket, Server_Group& group)
+            : socket_(std::move(socket)), group_(group){
     }
 
     void start();
 
     void deliver(const Server_Message& msg);
 
-private:
+protected:
     void do_read_header();
 
-    void do_read_body();
+    virtual void do_read_body();
 
     void do_write();
 
+protected:
+
     Server_Message get_message();
-    Server_Group& clients_group_;
-    bool figured_out_group = false;
     Server_Group& group_;
     tcp::socket socket_;
     Server_Message read_msg_;
