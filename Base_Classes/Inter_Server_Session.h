@@ -6,7 +6,7 @@
 #define DFS_INTER_SERVER_SESSION_H
 #include <boost/asio.hpp>
 #include <deque>
-#include "../Base_Classes/Server_Group.h"
+#include "Server_Group.h"
 #include "../utils/Server_Message.h"
 
 using boost::asio::ip::tcp;
@@ -18,6 +18,8 @@ class Server_Participant
 public:
     virtual ~Server_Participant() {}
     virtual void deliver(const Server_Message& msg) = 0;
+    virtual void write_possible_sequence(const std::string& message) = 0;
+    virtual void write_possible_sequence(const char * msg) = 0;
     virtual Server_Message get_message() = 0;
 };
 
@@ -33,10 +35,15 @@ public:
 
     void deliver(const Server_Message& msg);
 
+    void write_possible_sequence(const std::string& message);
+
+    void write_possible_sequence(const char * msg);
+
+
 protected:
     void do_read_header();
 
-    virtual void do_read_body();
+    virtual void do_read_body(int header_code);
 
     void do_write();
 

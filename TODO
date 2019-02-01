@@ -2,6 +2,7 @@
 
 1. ~~Add base classes for server-types and server_groups-types and inherit current classes from them~~
 2. ~~Add a middle- inter_server_session for determining if the new connection if a client or a slave and then adding them to the right group~~
+2. Add strand to sequentially send messages that are sequential 
 3. Add a protocol and functionality for storing and retrieving a basic string from client to slave and vice-versa
 4. Add fs functionality for server(only directory and files names)
 5. Add a protocol and functionality for sending fs commands from client to server

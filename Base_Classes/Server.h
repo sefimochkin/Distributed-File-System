@@ -10,6 +10,7 @@
 #include <deque>
 #include <iostream>
 
+
 using boost::asio::ip::tcp;
 
 class Server
@@ -25,7 +26,7 @@ public:
 
     //Server(){}
 
-    void write(const Server_Message& msg)
+    virtual void write(const Server_Message& msg)
     {
         io_service_.post(
                 [this, msg]()
@@ -39,6 +40,22 @@ public:
                 });
     }
 
+    void write_possible_sequence(const std::string& message){
+        io_service_.post(
+                [this, message]()
+                {   //write(Server_Message("id: " + std::to_string(id), false));
+                    std::queue<Server_Message> msgs = Server_Message::make_messages(message);
+                    while (!msgs.empty()){
+                        write(msgs.front());
+                        msgs.pop();
+                    }
+                });
+    }
+
+    void write_possible_sequence(const char * msg){
+        write_possible_sequence(std::string(msg));
+    }
+
     void close()
     {
         io_service_.post([this]() { socket_.close(); });
@@ -47,7 +64,7 @@ public:
     virtual ~Server() = default;
 
 
-private:
+protected:
     void do_connect(tcp::resolver::iterator endpoint_iterator)
     {
         boost::asio::async_connect(socket_, endpoint_iterator,
@@ -66,11 +83,10 @@ private:
                                 boost::asio::buffer(read_msg_.data(), Server_Message::header_length),
                                 [this](boost::system::error_code ec, std::size_t /*length*/)
                                 {
-                                    if (!ec && read_msg_.decode_header())
+                                    int header_code = read_msg_.decode_header();
+                                    if (!ec && (header_code != 0))
                                     {
-
-                                        do_read_body();
-
+                                        do_read_body(header_code);
                                     }
                                     else
                                     {
@@ -79,17 +95,15 @@ private:
                                 });
     }
 
-    void do_read_body()
+    void do_read_body(int header_code)
     {
         boost::asio::async_read(socket_,
                                 boost::asio::buffer(read_msg_.body(), read_msg_.body_length()),
-                                [this](boost::system::error_code ec, std::size_t /*length*/)
+                                [this, header_code](boost::system::error_code ec, std::size_t /*length*/)
                                 {
                                     if (!ec)
                                     {
-                                        std::cout.write(read_msg_.body(), read_msg_.body_length());
-                                        std::cout << "\n";
-                                        parse_answer_and_reply();
+                                        parse_possible_sequence(std::string(read_msg_.read()), header_code);
 
                                         do_read_header();
                                     }
@@ -122,15 +136,36 @@ private:
                                  });
     }
 
-    virtual void parse_answer_and_reply() = 0;
+    void parse_possible_sequence(const std::string& message, int header_code){
+        if (header_code == 2) {
+            if (strcmp(continuous_message.c_str(), "") == 0) {
+                printf("%s\n", message.c_str());
+                parse_answer_and_reply(message);
+            } else {
+                continuous_message += message;
+                printf("%s\n", continuous_message.c_str());
+                parse_answer_and_reply(continuous_message);
+                continuous_message = "";
+            }
+        }
+        else{
+            continuous_message += message;
+        }
+
+    }
+
+    virtual void parse_answer_and_reply(std::string message) = 0;
 
 
 
 protected:
+    int id;
     boost::asio::io_service& io_service_;
     tcp::socket socket_;
     Server_Message read_msg_;
     chat_message_queue write_msgs_;
+    std::string continuous_message;
+
 };
 
 

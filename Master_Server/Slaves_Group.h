@@ -31,7 +31,7 @@ class Slaves_Group : public Server_Group
 {
 public:
 
-  void parse(server_participant_ptr slave, char* msg);
+  void parse(server_participant_ptr slave, std::string message);
 
   ~Slaves_Group() = default;
 

@@ -26,10 +26,8 @@ public:
         parse_settings();
         initial_reserve_memory();
         reserved_memory = 0;
-        Server_Message msg = Server_Message();
-        msg.make_message("slave");
-        write(msg);
 
+        write_possible_sequence("slave");
     }
 
     ~Slave_Server() = default;
@@ -37,22 +35,19 @@ public:
 
 private:
 
-    void parse_answer_and_reply(){
-        std::string answer = std::string(read_msg_.body());
+    void parse_answer_and_reply(std::string message){
 
-
-        if (answer.find(std::string("ping")) == 0) {
-            Server_Message msg = Server_Message();
-            msg.make_message("received ping back");
-            write(msg);
+        if (message.find(std::string("ping")) == 0) {
+            write_possible_sequence("received ping back");
         }
-        else if (answer.find(std::string("start")) == 0) {
-            write(Server_Message("started"));
-        }
-        else if (answer.find(std::string("overall size")) == 0) {
+        else if (message.find(std::string("overall size")) == 0) {
             char ans[20];
             snprintf(ans, 20, "overall size: %d", all_memory);
-            write(Server_Message(ans));
+            write_possible_sequence(ans);
+        }
+        else if (message.find(std::string("id")) == 0){
+            sscanf(message.c_str(), "id: %d", &id);
+            write_possible_sequence("started");
         }
 
 

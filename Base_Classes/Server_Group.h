@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "../utils/Server_Message.h"
-#include "../Master_Server/Inter_Server_Session.h"
+#include "Inter_Server_Session.h"
 #include <unordered_map>
 
 class Server_Participant;
@@ -24,13 +24,15 @@ public:
 
     void leave(server_participant_ptr server);
 
-    void deliver(const Server_Message& msg);
+    void deliver(const std::string message);
 
     int len();
 
     void ping();
 
-    virtual void parse(server_participant_ptr slave, char* msg) = 0;
+    void parse_possible_sequence(server_participant_ptr server, std::string message, int header_code);
+
+    virtual void parse(server_participant_ptr server, std::string message) = 0;
 
     virtual ~Server_Group() = default;
 
@@ -38,6 +40,9 @@ protected:
     std::vector<server_participant_ptr> participants_;
     enum { max_recent_msgs = 100 };
     chat_message_queue recent_msgs_;
+    int current_id = 0;
+    std::unordered_map<server_participant_ptr, std::string> continuous_messages;
+
 
 };
 #endif //DFS_BASE_SERVER_GROUP_H

@@ -9,6 +9,8 @@
 #include <deque>
 #include <string>
 #include "../Base_Classes/Server.h"
+#include <iostream>
+#include <cstdio>
 
 
 class Client_Server : public Server
@@ -28,21 +30,31 @@ public:
     ~Client_Server() = default;
 
 
+    void send_command(std::string &command, std::string &first_argument, std::string &second_argument){
+        io_service_.post(
+                [this, command, first_argument, second_argument]()
+                {
+                    std::cout << command;
+
+                });
+    }
+
 
 
 private:
 
-    void parse_answer_and_reply(){
-        std::string answer = std::string(read_msg_.body());
 
 
-        if (answer.find(std::string("ping")) == 0) {
+    void parse_answer_and_reply(std::string message){
+
+
+        if (message.find(std::string("ping")) == 0) {
             Server_Message msg = Server_Message();
             msg.make_message("received ping back");
             write(msg);
         }
-        else if (answer.find(std::string("start")) == 0) {
-            write(Server_Message("started"));
+        else if (message.find(std::string("id")) == 0){
+            sscanf(message.c_str(), "id: %d", &id);
         }
 
 
