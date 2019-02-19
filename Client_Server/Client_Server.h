@@ -47,11 +47,9 @@ private:
 
     void parse_answer_and_reply(std::string message){
 
-
+        printf("received something!: %s", message.c_str());
         if (message.find(std::string("ping")) == 0) {
-            Server_Message msg = Server_Message();
-            msg.make_message("received ping back");
-            write(msg);
+            write_possible_sequence("send received ping back");
         }
         else if (message.find(std::string("id")) == 0){
             sscanf(message.c_str(), "id: %d", &id);

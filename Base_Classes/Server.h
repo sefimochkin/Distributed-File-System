@@ -139,12 +139,15 @@ protected:
     void parse_possible_sequence(const std::string& message, int header_code){
         if (header_code == 2) {
             if (strcmp(continuous_message.c_str(), "") == 0) {
-                printf("%s\n", message.c_str());
+                printf("PPS: %s\n", message.c_str());
                 parse_answer_and_reply(message);
+                printf("PPS: end\n");
+
             } else {
                 continuous_message += message;
-                printf("%s\n", continuous_message.c_str());
+                printf("\nPPS: %s\n", continuous_message.c_str());
                 parse_answer_and_reply(continuous_message);
+                printf("\nPPS: end\n");
                 continuous_message = "";
             }
         }

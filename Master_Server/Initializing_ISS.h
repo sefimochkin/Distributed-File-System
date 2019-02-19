@@ -34,7 +34,7 @@ private:
                                     {
                                         printf("%s\n", read_msg_.body());
                                         std::string answer = std::string(read_msg_.body());
-                                        if (answer.find(std::string("client")) == 0){
+                                        if (answer.find(std::string("clien")) == 0){
                                             std::make_shared<Inter_Server_Session>(std::move(socket_), clients_group_)->start();
                                             printf("client connected!\n");
                                         }

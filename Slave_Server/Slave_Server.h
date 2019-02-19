@@ -49,9 +49,13 @@ private:
             sscanf(message.c_str(), "id: %d", &id);
             write_possible_sequence("started");
         }
+        else if (message.find(std::string("send")) == 0) {
+            printf("YAAAAAAY, received: %s", message.c_str());
+        }
 
 
-    }
+
+        }
 
     void parse_settings(){
         std::ifstream infile("../settings/slave_server_config.txt");

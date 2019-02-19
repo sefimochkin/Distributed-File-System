@@ -7,6 +7,7 @@
 
 #include <boost/asio.hpp>
 #include "Slaves_Group.h"
+#include "Clients_Group.h"
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Initializing_ISS.h"
@@ -38,7 +39,7 @@ public:
     {
         boost::asio::io_service::work work(io_service);
         slaves_group = Slaves_Group();
-        clients_group = Slaves_Group();
+        clients_group = Clients_Group(&slaves_group);
         for (std::size_t i = 0; i < number_of_worker_threads; ++i)
             worker_threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
         ping_timer.async_wait(strand.wrap(boost::bind(&Master_Server::ping, this)));
@@ -49,6 +50,7 @@ public:
     void ping(){
 
         slaves_group.ping();
+        clients_group.ping();
 
         printf("Slave Server#: %d\n", slaves_group.len());
 
@@ -79,8 +81,8 @@ private:
     tcp::acceptor acceptor_;
     tcp::socket socket_;
     Slaves_Group slaves_group;
-    Slaves_Group clients_group;
-    int ping_period = 60;
+    Clients_Group clients_group;
+    int ping_period = 25;
     boost::asio::deadline_timer ping_timer;
     boost::asio::io_service::strand strand;
     boost::thread_group worker_threads;

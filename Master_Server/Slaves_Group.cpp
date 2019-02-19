@@ -31,3 +31,17 @@ void Slaves_Group::parse(server_participant_ptr slave, std::string message){
         slaves_info.insert({slave, server_info});
     }
 }
+
+void Slaves_Group::send_command(server_participant_ptr slave, std::string message) {
+    int max_free_size = 0;
+    server_participant_ptr winner;
+
+    for (auto &it: slaves_info) {
+        if (it.second.overall_memory > max_free_size)
+            winner = it.first;
+    }
+    (*winner).write_possible_sequence(message);
+
+
+
+}
