@@ -8,6 +8,7 @@
 #include <deque>
 #include "Server_Group.h"
 #include "../utils/Server_Message.h"
+#include <mutex>
 
 using boost::asio::ip::tcp;
 
@@ -49,6 +50,7 @@ protected:
 
 protected:
 
+    std::mutex write_mutex;
     Server_Message get_message();
     Server_Group& group_;
     tcp::socket socket_;

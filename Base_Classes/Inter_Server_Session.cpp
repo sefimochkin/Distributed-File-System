@@ -25,11 +25,15 @@ void Inter_Server_Session::deliver(const Server_Message& msg)
 
 void Inter_Server_Session::write_possible_sequence(const std::string& message){
     //write(Server_Message("id: " + std::to_string(id), false));
+    write_mutex.lock();
+    printf("Bla!");
     std::queue<Server_Message> msgs = Server_Message::make_messages(message);
     while (!msgs.empty()){
         deliver(msgs.front());
         msgs.pop();
     }
+    write_mutex.unlock();
+
 
 }
 
