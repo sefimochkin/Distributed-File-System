@@ -11,6 +11,8 @@
 #include "../Base_Classes/Server.h"
 #include <iostream>
 #include <cstdio>
+#include <sstream>
+
 
 
 class Client_Server : public Server
@@ -43,16 +45,33 @@ public:
 
 private:
 
+    std::string parse_user_input_and_make_command(const std::string &message){
+        std::istringstream iss(message);
+        std::string command;
+        std::string first_arg;
+        std::string second_arg;
 
+        if (iss)
+            iss >> command;
+        if (iss)
+            iss >> first_arg;
+        std::getline(iss, second_arg);
 
-    void parse_answer_and_reply(std::string message){
+        std::string answer =  "command: " + command + ", id: " + std::to_string(id) + ", first_arg: " + first_arg + ", second_arg: " + second_arg;
 
-        printf("received something!: %s", message.c_str());
+        return answer;
+    }
+
+    void parse_answer_and_reply(const std::string &message) override {
+
         if (message.find(std::string("ping")) == 0) {
-            write_possible_sequence("send received ping back");
+            write_possible_sequence(parse_user_input_and_make_command("send received_ping_back"));
         }
         else if (message.find(std::string("id")) == 0){
             sscanf(message.c_str(), "id: %d", &id);
+        }
+        else if (message.find(std::string("command")) == 0) {
+            printf("YAAAAAAY, received BAAAACKKK: %s\n", message.c_str());
         }
 
 

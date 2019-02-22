@@ -6,21 +6,22 @@
 #define DFS_SLAVE_CLIENTS_GROUP_H
 
 #include "../Base_Classes/Server_Group.h"
-#include "Slaves_Group.h"
 
 class Clients_Group : public Server_Group {
 
 public:
     Clients_Group() = default;
-    Clients_Group(Slaves_Group *slaves_group_){
-        slaves_group = slaves_group_;
-    }
+
+    void send_command(std::string message);
+
+
     void parse(server_participant_ptr slave, std::string message);
+
 
     ~Clients_Group() = default;
 
 private:
-    Slaves_Group* slaves_group;
+    void parse_command_and_do_something(std::string message);
 };
 
 

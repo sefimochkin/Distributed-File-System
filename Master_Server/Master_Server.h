@@ -38,8 +38,9 @@ public:
               strand(io_service), io_service_(io_service)
     {
         boost::asio::io_service::work work(io_service);
-        slaves_group = Slaves_Group();
-        clients_group = Clients_Group(&slaves_group);
+        clients_group.add_pointer_to_other_group(&slaves_group);
+        slaves_group.add_pointer_to_other_group(&clients_group);
+
         for (std::size_t i = 0; i < number_of_worker_threads; ++i)
             worker_threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
         ping_timer.async_wait(strand.wrap(boost::bind(&Master_Server::ping, this)));

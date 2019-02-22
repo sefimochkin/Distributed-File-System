@@ -9,6 +9,7 @@
 #include "../utils/Server_Message.h"
 #include <unordered_map>
 #include "../Base_Classes/Server_Group.h"
+#include "Clients_Group.h"
 
 struct slave_info{
     slave_info(server_participant_ptr owner_, int overall_memory_, int reserved_memory_) :
@@ -31,17 +32,19 @@ class Slaves_Group : public Server_Group
 {
 public:
 
-  void send_command(server_participant_ptr slave, std::string message);
+  void parse_command_and_do_something(std::string message);
+
+  void send_command(std::string message);
 
   void parse(server_participant_ptr slave, std::string message);
 
   ~Slaves_Group() = default;
 
+  
 
 private:
     int sum_of_overall_memory = 0;
     std::unordered_map<server_participant_ptr, slave_info> slaves_info;
-
 };
 
 #endif //DFS_SERVER_GROUP_H

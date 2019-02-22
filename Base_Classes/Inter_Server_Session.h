@@ -22,6 +22,7 @@ public:
     virtual void write_possible_sequence(const std::string& message) = 0;
     virtual void write_possible_sequence(const char * msg) = 0;
     virtual Server_Message get_message() = 0;
+    int id;
 };
 
 class Inter_Server_Session: public Server_Participant,

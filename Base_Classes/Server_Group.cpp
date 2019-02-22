@@ -4,17 +4,22 @@
 
 
 #include "Server_Group.h"
+#include <sstream>
+
 
 void Server_Group::join(server_participant_ptr server)
 {
-    if (std::find(participants_.begin(), participants_.end(), server)==participants_.end()) {
-        participants_.push_back(server);
-        std::string id_string = "id: " + std::to_string(current_id);
-        current_id++;
-        continuous_messages.insert({server, std::string("")});
-        (*server).write_possible_sequence(id_string);
-
+    for (auto &participant : participants_) {
+        if(participant.second == server)
+            return;
     }
+
+    int id = current_id.fetch_add(1);
+    participants_.insert({id, server});
+    std::string id_string = "id: " + std::to_string(id);
+    continuous_messages.insert({server, std::string("")});
+    (*server).write_possible_sequence(id_string);
+
 
     //for (auto msg: recent_msgs_)
     //    server->write_possible_sequence(msg);
@@ -22,7 +27,12 @@ void Server_Group::join(server_participant_ptr server)
 
 void Server_Group::leave(server_participant_ptr server)
 {
-    participants_.erase(std::remove(participants_.begin(), participants_.end(), server), participants_.end());
+    for(auto it = participants_.begin(); it != participants_.end(); it++)
+    {
+        if(it->second == server)
+            participants_.erase(it);
+    }
+    //participants_.erase(std::remove(participants_.begin(), participants_.end(), server), participants_.end());
 }
 
 void Server_Group::deliver(const std::string message)
@@ -31,12 +41,12 @@ void Server_Group::deliver(const std::string message)
     //while (recent_msgs_.size() > max_recent_msgs)
     //    recent_msgs_.pop_front();
 
-    for (auto participant: participants_)
-        participant->write_possible_sequence(message);
+    for (auto &participant : participants_)
+        participant.second->write_possible_sequence(message);
 }
 
 int Server_Group::len(){
-    return participants_.size();
+    return static_cast<int>(participants_.size());
 }
 
 void Server_Group::ping(){
@@ -60,8 +70,6 @@ void Server_Group::parse_possible_sequence(server_participant_ptr server, std::s
     }
 
 }
-
-
 
 Server_Group::Server_Group() {
 }

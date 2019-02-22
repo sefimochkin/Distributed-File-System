@@ -12,6 +12,7 @@
 #include "../Base_Classes/Server.h"
 #include <string>
 #include <fstream>
+#include <sstream>
 
 
 
@@ -35,7 +36,7 @@ public:
 
 private:
 
-    void parse_answer_and_reply(std::string message){
+    void parse_answer_and_reply(const std::string &message) override {
 
         if (message.find(std::string("ping")) == 0) {
             write_possible_sequence("received ping back");
@@ -49,13 +50,39 @@ private:
             sscanf(message.c_str(), "id: %d", &id);
             write_possible_sequence("started");
         }
-        else if (message.find(std::string("send")) == 0) {
+        else if (message.find(std::string("command")) == 0) {
+            parse_command_and_do_something(message);
+        }
+    }
+
+    void parse_command_and_do_something(std::string message){
+        std::istringstream iss(message);
+        std::string command;
+        std::string first_arg;
+        std::string second_arg;
+        std::string trash;
+
+        if (iss)
+            iss >> trash;
+        if (iss)
+            iss >> command;
+        if (iss)
+            iss >> trash;
+        if (iss)
+            iss >> trash;
+        if (iss)
+            iss >> trash;
+        if (iss)
+            iss >> first_arg;
+        if (iss)
+            iss >> trash;
+        std::getline(iss, second_arg);
+
+        if (command.find(std::string("send")) == 0){
             printf("YAAAAAAY, received: %s", message.c_str());
+            write_possible_sequence(message);
         }
-
-
-
-        }
+    }
 
     void parse_settings(){
         std::ifstream infile("../settings/slave_server_config.txt");

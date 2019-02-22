@@ -4,7 +4,7 @@
 2. ~~Add a middle- inter_server_session for determining if the new connection if a client or a slave and then adding them to the right group~~
 2. ~~Add strand to sequentially send messages that are sequential~~(handled it with mutex on write to connection) 
 3. ~~Add a protocol and functionality for sending a basic string from client to slave~~
-4. Figure out how to send a string received by slave back to client
+4. ~~Figure out how to send a string received by slave back to client~~
 5. Add fs functionality for server(only directory and files names)
 6. Add a protocol and functionality for sending fs commands from client to server
 7. Add fs functionality for slaves(index of address block equals number of file_block in the system)
