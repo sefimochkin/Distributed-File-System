@@ -13,6 +13,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include "Slave_FS_Handler.h"
 
 
 
@@ -55,12 +56,13 @@ private:
         }
     }
 
-    void parse_command_and_do_something(std::string message){
+    void parse_command_and_do_something(const std::string &message){
         std::istringstream iss(message);
         std::string command;
         std::string first_arg;
         std::string second_arg;
         std::string trash;
+        int id = -1;
 
         if (iss)
             iss >> trash;
@@ -69,7 +71,7 @@ private:
         if (iss)
             iss >> trash;
         if (iss)
-            iss >> trash;
+            iss >> id;
         if (iss)
             iss >> trash;
         if (iss)
@@ -81,6 +83,29 @@ private:
         if (command.find(std::string("send")) == 0){
             printf("YAAAAAAY, received: %s", message.c_str());
             write_possible_sequence(message);
+        }
+
+        if (command.find(std::string("store_whole")) == 0){
+            printf("storing: %s", first_arg.c_str());
+            int index = fs.store_data_blocks(first_arg);
+            std::string answer = "command: store_whole id: " + std::to_string(id) + " first_arg: " + std::to_string(index);
+            write_possible_sequence(answer);
+        }
+
+        if (command.find(std::string("read_whole")) == 0){
+            printf("reading: %s", message.c_str());
+            std::string output = fs.read_data_blocks((unsigned int)std::stoi(first_arg), (unsigned int)std::stoi(second_arg));
+
+            std::string answer = "command: read_whole id: " + std::to_string(id) + " first_arg: _ second_arg: " + output;
+            write_possible_sequence(answer);
+        }
+
+        if (command.find(std::string("free_whole")) == 0){
+            printf("reading: %s", message.c_str());
+            fs.free_data_blocks((unsigned int)std::stoi(first_arg), (unsigned int)std::stoi(second_arg));
+
+            std::string answer = "command: freed_whole id: " + std::to_string(id) + " first_arg: _ second_arg: ";
+            write_possible_sequence(answer);
         }
     }
 
@@ -109,6 +134,7 @@ private:
 private:
     int all_memory;
     int reserved_memory;
+    Slave_FS_Handler fs;
 };
 
 

@@ -23,7 +23,11 @@ struct inode {
     unsigned int number_of_inode;
 };
 
-struct inode * create_file(struct superblock *sb, char* name, char* file, int size_of_name, int size_of_file, struct inode* owner);
+typedef
+struct FS_Handler
+        FS_Handler;
+
+struct inode * create_file(struct superblock *sb, char* name, char* file, int size_of_name, int size_of_file, struct inode* owner, FS_Handler *fs_handler, int id);
 struct inode * create_directory(struct superblock *sb, char* name, int size_of_name, struct inode* owner);
 void add_file_to_directory(struct superblock *sb, struct inode* directory, struct inode* added_inode);
 

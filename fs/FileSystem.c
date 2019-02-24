@@ -199,7 +199,7 @@ char* rm(struct superblock *sb, const char* name, struct inode* directory){
     return answer;
 }
 
-char* touch(struct superblock *sb, const char* name, const char* input, struct inode* directory){
+char* touch(struct superblock *sb, const char* name, const char* input, struct inode* directory, FS_Handler *fs_handler, int id){
     char* answer;
     if(!check_doubling_name(sb, name, directory))
         answer = "File with this name already exists!";
@@ -213,7 +213,7 @@ char* touch(struct superblock *sb, const char* name, const char* input, struct i
             answer = "No more free blocks! Remove something!";
 
         else {
-            create_file(sb, name, input, (int) strlen(name), (int) strlen(input), directory);
+            create_file(sb, name, input, (int) strlen(name), (int) strlen(input), directory, id);
             answer = "";
         }
     }

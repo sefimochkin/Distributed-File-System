@@ -62,6 +62,15 @@ void Slaves_Group::parse_command_and_do_something(std::string message){
 
     if (command.find(std::string("send")) == 0)
         other_group_->send_command(message);
+
+    else if (command.find(std::string("stored_whole")) == 0)
+        other_group_->send_command(message);
+
+    else if (command.find(std::string("read_whole")) == 0)
+        other_group_->send_command(message);
+
+    else if (command.find(std::string("freed_whole")) == 0)
+        other_group_->send_command(message);
 }
 
 

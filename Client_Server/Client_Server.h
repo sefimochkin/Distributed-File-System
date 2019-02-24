@@ -42,11 +42,9 @@ public:
     }
 */
     void input_message(const std::string &command, const std::string &first_arg, const std::string &second_arg){
-        std::string answer =  "command: " + command + ", id: " + std::to_string(id) + ", first_arg: " + first_arg + ", second_arg: " + second_arg;
+        std::string answer =  "command: " + command + " id: " + std::to_string(id) + " first_arg: " + first_arg + " second_arg: " + second_arg;
         write_possible_sequence(answer);
     }
-
-
 
 
 private:
@@ -63,7 +61,7 @@ private:
             iss >> first_arg;
         std::getline(iss, second_arg);
 
-        std::string answer =  "command: " + command + ", id: " + std::to_string(id) + ", first_arg: " + first_arg + " second_arg: " + second_arg;
+        std::string answer =  "command: " + command + " id: " + std::to_string(id) + " first_arg: " + first_arg + " second_arg: " + second_arg;
 
         return answer;
     }
@@ -109,7 +107,7 @@ private:
         //printf("got command: %s\n", command.c_str());
 
         if (command.find(std::string("print")) == 0) {
-            printf("%s\n", first_arg.c_str());
+            printf("%s\n", second_arg.c_str());
         }
     }
 };

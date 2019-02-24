@@ -34,8 +34,6 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
         if (iss)
             iss >> trash;
         if (iss)
-            iss >> trash;
-        if (iss)
             iss >> first_arg;
         if (iss)
             iss >> trash;
@@ -49,9 +47,12 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
         }
 
         else {
-            std::string answer = "command: print, id: " + std::to_string(id) + ", first_arg: " + fs.do_command(id, command, first_arg, second_arg) + " second_arg: ";
+
+            std::string answer = "command: print id: " + std::to_string(id) + " first_arg: _ second_arg: " + fs.do_command(id, command, first_arg, second_arg);
+            printf("sending answer: %s\n", answer.c_str());
             participants_[id]->write_possible_sequence(answer);
         }
+
     }
 
 void Clients_Group::send_command(std::string message) {
@@ -82,6 +83,16 @@ void Clients_Group::send_command(std::string message) {
 
     if (command.find(std::string("send")) == 0) {
         participants_[id]->write_possible_sequence(message);
+    }
+    else if (command.find(std::string("stored_whole")) == 0){
+        participants_[id]->write_possible_sequence(message);
+    }
+
+    else if (command.find(std::string("read_whole")) == 0){
+        participants_[id]->write_possible_sequence(message);
+    }
+
+    else if (command.find(std::string("freed_whole")) == 0){
     }
     //(*winner).write_possible_sequence(message);
 }

@@ -8,12 +8,13 @@
 #include "../utils/Network_utils.h"
 
 
-struct inode * create_file(struct superblock *sb, char* name, char* file, int size_of_name, int size_of_file, struct inode* owner){
+struct inode * create_file(struct superblock *sb, char* name, char* file, int size_of_name, int size_of_file, struct inode* owner, FS_Handler *fs_handler, int id){
     struct inode *inode = get_free_inode(sb);
 
     inode->is_directory = 0;
     inode->index_of_blocks_array_of_name = put_data_in_blocks(sb, name, size_of_name);
-    inode->index_of_blocks_array_of_file = put_data_in_blocks(sb, file, size_of_file);
+    //inode->index_of_blocks_array_of_file = put_data_in_blocks(sb, file, size_of_file);
+    fs_handler->store_data_in_slave(fs_handler, id, name, file);
     inode->size_of_name_in_chars = size_of_name;
     inode->size_of_file_in_chars = size_of_file;
     inode->number_of_files_in_directory = 0;

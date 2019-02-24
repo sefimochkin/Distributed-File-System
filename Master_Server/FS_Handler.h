@@ -30,13 +30,30 @@ public:
         slaves_group_ = slaves_group;
     }
 
+    Server_Group * slaves_group_;
+
+    void store_data_in_slave(int id,  char *name, char *data) {
+        std::string
+                message = "command: to_store id: " + std::to_string(id) + " first_arg: " + name + " second_arg: " + data;
+        slaves_group_->send_command(message);
+    }
+    void read_data_in_slave(int id, char *name) {
+        std::string
+                message = "command: to_read id: " + std::to_string(id) + " first_arg: " + name + " second_arg: ";
+        slaves_group_->send_command(message);
+    }
+    void free_data_in_slave(int id, char *name) {
+        std::string
+                message = "command: to_free id: " + std::to_string(id) + " first_arg: " + name + " second_arg: ";
+        slaves_group_->send_command(message);
+    }
+
 private:
     char * name = const_cast<char *>("./fs_names_and_directories");
     std::unordered_map<int,  struct inode**> clients_cur_directories;
     void* filesystem;
     struct inode* root;
     struct superblock* sb;
-    Server_Group * slaves_group_;
 
 };
 

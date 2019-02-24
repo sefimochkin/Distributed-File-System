@@ -29,18 +29,27 @@ int main(int argc, char* argv[])
         std::string command;
         std::string first_argument;
         std::string second_argument;
+        std::string input_line;
 
-        std::cin >> command;
-        std::cin >> first_argument;
-        std::getline(std::cin, second_argument);
+        std::getline(std::cin, input_line);
+        std::istringstream iss(input_line);
+        iss >> command;
+        iss >> first_argument;
+        std::getline(iss, second_argument);
 
 
         while(command.find("finish") != 0){
             client.input_message(command, first_argument, second_argument);
 
-            std::cin >> command;
-            std::cin >> first_argument;
-            std::getline(std::cin, second_argument);
+            command = "";
+            first_argument = "";
+            second_argument = "";
+
+            std::getline(std::cin, input_line);
+            std::istringstream iss(input_line);
+            iss >> command;
+            iss >> first_argument;
+            std::getline(iss, second_argument);
             //int number_of_arguments = std::sscanf(input_line.c_str(), "%s %s %s", command.c_str(),
             //                                      first_argument.c_str(), second_argument.c_str());
         }

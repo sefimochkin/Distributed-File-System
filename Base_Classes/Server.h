@@ -139,12 +139,12 @@ protected:
     void parse_possible_sequence(const std::string& message, int header_code){
         if (header_code == 2) {
             if (strcmp(continuous_message.c_str(), "") == 0) {
-                printf("%s\n", message.c_str());
+                //printf("%s\n", message.c_str());
                 parse_answer_and_reply(message);
 
             } else {
                 continuous_message += message;
-                printf("%s\n", continuous_message.c_str());
+                //printf("%s\n", continuous_message.c_str());
                 parse_answer_and_reply(continuous_message);
                 continuous_message = "";
             }
@@ -156,8 +156,6 @@ protected:
     }
 
     virtual void parse_answer_and_reply(const std::string &message) = 0;
-
-
 
 protected:
     int id;
