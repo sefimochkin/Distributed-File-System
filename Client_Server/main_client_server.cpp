@@ -26,28 +26,25 @@ int main(int argc, char* argv[])
 
         std::thread t([&io_service](){ io_service.run(); });
 
-        std::string input_line;
-        std::cin >> input_line;
         std::string command;
         std::string first_argument;
         std::string second_argument;
 
-        std::stringstream input_stream(input_line);
-        input_stream >> command >> first_argument >> second_argument;
-        /*
+        std::cin >> command;
+        std::cin >> first_argument;
+        std::getline(std::cin, second_argument);
 
-        //int number_of_arguments = std::sscanf(input_line.c_str(), "%s %s %s", command.c_str(),
-        //                                      first_argument.c_str(), second_argument.c_str());
-        while(strcmp(command.c_str(), "finish") != 0){
-            client.send_command(command, first_argument, second_argument);
 
-            std::cin >> input_line;
-            input_stream << input_line;
-            input_stream >> command >> first_argument >> second_argument;
+        while(command.find("finish") != 0){
+            client.input_message(command, first_argument, second_argument);
+
+            std::cin >> command;
+            std::cin >> first_argument;
+            std::getline(std::cin, second_argument);
             //int number_of_arguments = std::sscanf(input_line.c_str(), "%s %s %s", command.c_str(),
             //                                      first_argument.c_str(), second_argument.c_str());
         }
-        */
+
 
         printf("Finished Client");
 

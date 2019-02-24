@@ -6,6 +6,7 @@
 #define DFS_SLAVE_CLIENTS_GROUP_H
 
 #include "../Base_Classes/Server_Group.h"
+#include "FS_Handler.h"
 
 class Clients_Group : public Server_Group {
 
@@ -22,6 +23,7 @@ public:
 
 private:
     void parse_command_and_do_something(std::string message);
+    FS_Handler fs;
 };
 
 

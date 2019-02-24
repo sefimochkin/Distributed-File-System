@@ -67,7 +67,7 @@ struct inode * create_filesystem(char *filesystem){
     return root;
 }
 
-struct inode * open_filesystem(char* file_system_name, char* filesystem, int sock){
+struct inode * open_filesystem(char* file_system_name, char* filesystem){
     FILE* file_with_filesystem = fopen(file_system_name, "r");
     char* magic_symbols;
 
@@ -80,11 +80,6 @@ struct inode * open_filesystem(char* file_system_name, char* filesystem, int soc
         magic_symbols = malloc(strlen(MAGIC_SYMBOLS) + 1);
         memset(magic_symbols, 0, (strlen(MAGIC_SYMBOLS) + 1));
         fread(magic_symbols, sizeof(char), strlen(MAGIC_SYMBOLS), file_with_filesystem);
-        if(strcmp(magic_symbols, MAGIC_SYMBOLS) != 0){
-            send_answer(sock, "\nNot compatible file_system!");
-            free(magic_symbols);
-            exit(1);
-        }
         free(magic_symbols);
     }
 
@@ -120,14 +115,15 @@ struct inode * open_filesystem(char* file_system_name, char* filesystem, int soc
     return root;
 }
 
-void save_filesystem(char* file_system_name, char* filesystem, int sock){
+char* save_filesystem(char* file_system_name, char* filesystem){
+    char* answer;
 
     FILE *file_with_filesystem = fopen(file_system_name, "w");
 
     if (file_with_filesystem == NULL)
     {
-        send_answer(sock, "\nError saving to file!");
-        exit (1);
+        answer = "\nError saving to file!";
+        return answer;
     }
 
     fwrite(MAGIC_SYMBOLS, sizeof(char), strlen(MAGIC_SYMBOLS), file_with_filesystem);
@@ -140,142 +136,130 @@ void save_filesystem(char* file_system_name, char* filesystem, int sock){
     fwrite(sb->blocks_data_array, sizeof(char), NUMBER_OF_BLOCKS * NUMBER_OF_BYTES_IN_BLOCK, file_with_filesystem);
 
     fclose(file_with_filesystem);
+
+    answer = "";
+    return answer;
 }
 
-void close_filesystem(char* file_system_name, char* filesystem, int sock){
-    save_filesystem(file_system_name, filesystem, sock);
+char* close_filesystem(char* file_system_name, char* filesystem){
+    char* answer = save_filesystem(file_system_name, filesystem);
     free(filesystem);
+
+    return answer;
 }
 
 char* ls(struct superblock *sb, struct inode* directory){
     return get_file_names_from_directory(sb, directory);
 }
 
-void mkdir(struct superblock *sb, char* name, struct inode* directory, int sock){
-    if(!check_doubling_name(sb, name, directory))
-        send_answer(sock, "File with this name already exists!");
+char* mkdirf(struct superblock *sb, const char* name, struct inode* directory){
+    char* answer;
+    if(check_doubling_name(sb, name, directory) == 0)
+        answer = "File with this name already exists!";
     else{
         if(sb->number_of_free_inods < 0)
-            send_answer(sock, "No more free inods! Remove something!");
+            answer = "No more free inods! Remove something!";
 
         else if(sb->number_of_free_blocks < get_size_of_data_in_blocks(sb, (int)strlen(name)))
-            send_answer(sock, "No more free blocks! Remove something!");
+            answer = "No more free blocks! Remove something!";
 
-        else
-            create_directory(sb, name, (int)strlen(name), directory);
+        else {
+            create_directory(sb, name, (int) strlen(name), directory);
+            answer = "";
+        }
     }
+    return answer;
 }
 
-void rm_dir(struct superblock *sb, char* name, struct inode* directory, int sock){
-    struct inode* inode = get_inode_by_name(sb, name, directory, sock);
+char* rm_dir(struct superblock *sb, const char* name, struct inode* directory){
+    char *answer = NULL;
+    struct inode* inode = get_inode_by_name(sb, name, directory, answer);
     if(inode != NULL)
-        if(inode->is_directory)
+        if(inode->is_directory) {
             delete_directory(sb, inode);
-        else
-            send_answer(sock, "For deleting a file use rm");
+            answer = "";
+        }
+        else {
+            answer = "For deleting a file use rm";
+        }
+
+    return answer;
 }
 
-void rm(struct superblock *sb, char* name, struct inode* directory, int sock){
-    struct inode *inode = get_inode_by_name(sb, name, directory, sock);
+char* rm(struct superblock *sb, const char* name, struct inode* directory){
+    char *answer = NULL;
+    struct inode *inode = get_inode_by_name(sb, name, directory, answer);
     if(inode != NULL)
         if(inode->is_directory)
-            send_answer(sock, "For deleting a directory use rmdir");
-        else
+            answer = "For deleting a directory use rmdir";
+        else {
             delete_file(sb, inode);
+            answer = "";
+        }
+    return answer;
 }
 
-void touch(struct superblock *sb, char* name, char* input, struct inode* directory, int sock){
+char* touch(struct superblock *sb, const char* name, const char* input, struct inode* directory){
+    char* answer;
     if(!check_doubling_name(sb, name, directory))
-        send_answer(sock, "File with this name already exists!");
+        answer = "File with this name already exists!";
 
     else{
         if(sb->number_of_free_inods < 0)
-            send_answer(sock, "No more free inods! Remove something!");
+            answer = "No more free inods! Remove something!";
 
         else if(sb->number_of_free_blocks < get_size_of_data_in_blocks(sb, (int)strlen(name)) +
                                             get_size_of_data_in_blocks(sb, (int)strlen(input)))
-            send_answer(sock, "No more free blocks! Remove something!");
+            answer = "No more free blocks! Remove something!";
 
-        else
-            create_file(sb, name, input, (int)strlen(name), (int)strlen(input), directory);
+        else {
+            create_file(sb, name, input, (int) strlen(name), (int) strlen(input), directory);
+            answer = "";
+        }
     }
+    return answer;
 }
 
-char* read_file(struct superblock *sb, char* name, struct inode* directory, int sock){
-    struct inode *inode = get_inode_by_name(sb, name, directory, sock);
+
+char* read_file(struct superblock *sb, const char* name, struct inode* directory, short int* failed){
+    char* answer = NULL;
+    struct inode *inode = get_inode_by_name(sb, name, directory, answer);
 
     if(inode != NULL) {
         if(inode->is_directory){
-            send_answer(sock, "Can't read directory!");
-            return NULL;
+            *failed = 1;
+            answer = "Can't read directory!";
+            return answer;
         }
         return open_file(sb, inode);
     }
-    else return NULL;
+    else {
+        *failed = 1;
+        return answer;
+    }
 }
 
-void cd(struct superblock *sb, char*name, struct inode** current_directory, int sock){
-    if(strcmp(name, "..") == 0)
+char* cd(struct superblock *sb, const char* name, struct inode** current_directory){
+    char* answer = NULL;
+    if(strcmp(name, "..") == 0) {
         *current_directory = &(sb->inods_array[(*current_directory)->index_of_owner_inode]);
-    else if (strcmp(name, "/") == 0)
+        answer = "";
+    }
+    else if (strcmp(name, "/") == 0) {
         *current_directory = sb->inods_array; // root inode
+        answer = "";
+    }
     else {
-        struct inode *inode = get_inode_by_name(sb, name, *current_directory, sock);
+        struct inode *inode = get_inode_by_name(sb, name, *current_directory, answer);
         if(inode != NULL) {
             if (!inode->is_directory)
-                send_answer(sock, "Not a directory!");
-            else
+                answer =  "Not a directory!";
+            else {
                 *current_directory = inode;
+                answer = "";
+            }
         }
     }
-}
 
-void import_file(struct superblock *sb, char* inner_name, char* outer_name, struct inode* directory, int sock){
-    char* file_path = malloc(strlen(outer_name) + 3);
-    strncpy(file_path, "./", 2);
-    strncpy(&file_path[2], outer_name, strlen(outer_name) + 1);
-
-    FILE *filep = fopen(file_path, "r");
-
-    if (filep == NULL)
-    {
-        send_answer(sock, "\nError opening file!");
-        exit (1);
-    }
-    fseeko(filep, 0, SEEK_END);
-    int size_of_file = (int) ftell(filep);
-    rewind(filep);
-
-
-    char* input = malloc(size_of_file + 1);
-    memset(input, 0, (size_of_file +1));
-    fread(input, sizeof(char), (size_t) size_of_file, filep);
-
-    touch(sb, inner_name, input, directory, sock);
-
-    fclose(filep);
-    free(file_path);
-    free(input);
-}
-
-void export_file(struct superblock *sb, char* inner_name, char* outer_name, struct inode* directory, int sock){
-    char* file_path = malloc(strlen(outer_name) + 3);
-    memset(file_path, 0, strlen(outer_name)+3);
-    strncpy(file_path, "./", 2);
-    strncpy(&file_path[2], outer_name, strlen(outer_name) + 1);
-
-    FILE *filep = fopen(file_path, "w");
-
-    if (filep == NULL)
-    {
-        send_answer(sock, "\nError opening file!");
-        exit (1);
-    }
-
-    char* output = read_file(sb, inner_name, directory, sock);
-    fwrite(output, sizeof(char), strlen(output), filep);
-    fclose(filep);
-
-    free(output);
-    free(file_path);
+    return answer;
 }

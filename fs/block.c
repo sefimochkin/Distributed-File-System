@@ -74,7 +74,7 @@ char* read_data_in_blocks(struct superblock *sb, struct block* address_blocks, i
 //valgrind --leak-check=full ./my_prog
 
 
-void free_data_in_blocks(struct superblock *sb, struct block* address_blocks, int size_of_data, _Bool is_inodes){
+void free_data_in_blocks(struct superblock *sb, struct block* address_blocks, int size_of_data, short is_inodes){
     int number_of_adress_blocks = get_number_of_address_blocks(sb, size_of_data);
     struct block** address_blocks_array = (struct block**) malloc(sizeof(void *) * number_of_adress_blocks);
 

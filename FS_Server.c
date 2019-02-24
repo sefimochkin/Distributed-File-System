@@ -18,7 +18,7 @@
 #define FIRST_ARG_SIZE 128
 #define SECOND_ARG_SIZE 1024
 #define INPUT_SIZE 1186
-
+/*
 void Server_run() {
     //daemon(0, 0);
     int sock, listener;
@@ -180,3 +180,4 @@ void Server_run() {
     }
 
 }
+*/

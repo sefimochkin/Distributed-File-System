@@ -260,7 +260,7 @@ char* get_file_names_from_directory(struct superblock *sb, struct inode* directo
 }
 
 
-struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* directory, int sock){
+struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* directory, char* answer){
     if(directory->number_of_files_in_directory > 0){
         int number_of_inodes = directory->number_of_files_in_directory;
 
@@ -278,18 +278,18 @@ struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* 
             }
             free(inode_name);
         }
-        send_answer(sock, "No files with this name!");
+        answer = "No files with this name!";
         return NULL;
     }
     else {
-        send_answer(sock, "No files in directory!");
+        answer = "No files in directory!";
         return NULL;
     }
 
 }
 
 
-_Bool check_doubling_name(struct superblock *sb, char*name, struct inode* directory){
+short check_doubling_name(struct superblock *sb, char*name, struct inode* directory){
     if(directory->number_of_files_in_directory > 0) {
         int number_of_inodes = directory->number_of_files_in_directory;
 

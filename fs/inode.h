@@ -15,7 +15,7 @@ struct inode {
     unsigned int index_of_blocks_array_of_name;
     unsigned int index_of_blocks_array_of_file;
 
-    _Bool is_directory;
+    short is_directory;
     int number_of_files_in_directory;
     unsigned int index_of_blocks_array_of_inodes;
 
@@ -37,8 +37,8 @@ char* open_file(struct superblock *sb, struct inode* inode);
 
 char* get_file_names_from_directory(struct superblock *sb, struct inode* directory);
 
-struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* directory, int sock);
-_Bool check_doubling_name(struct superblock *sb, char*name, struct inode* directory);
+struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* directory, char* answer);
+short check_doubling_name(struct superblock *sb, char*name, struct inode* directory);
 
 int get_size_of_data_in_blocks(struct superblock *sb, int size_of_data);
 

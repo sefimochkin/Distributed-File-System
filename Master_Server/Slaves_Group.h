@@ -40,8 +40,6 @@ public:
 
   ~Slaves_Group() = default;
 
-  
-
 private:
     int sum_of_overall_memory = 0;
     std::unordered_map<server_participant_ptr, slave_info> slaves_info;

@@ -21,6 +21,7 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
         std::string first_arg;
         std::string second_arg;
         std::string trash;
+        int id = -1;
 
         if (iss)
             iss >> trash;
@@ -28,6 +29,8 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
             iss >> command;
         if (iss)
             iss >> trash;
+        if (iss)
+            iss >> id;
         if (iss)
             iss >> trash;
         if (iss)
@@ -40,9 +43,15 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
 
         //printf("got command: %s\n", command.c_str());
 
-        if (message.find(std::string("send")) == 0)
+        if (message.find(std::string("send")) == 0) {
             printf("sending to slaves_group!\n");
             other_group_->send_command(message);
+        }
+
+        else {
+            std::string answer = "command: print, id: " + std::to_string(id) + ", first_arg: " + fs.do_command(id, command, first_arg, second_arg) + " second_arg: ";
+            participants_[id]->write_possible_sequence(answer);
+        }
     }
 
 void Clients_Group::send_command(std::string message) {
