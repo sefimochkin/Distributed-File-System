@@ -16,7 +16,16 @@ void Slaves_Group::parse(server_participant_ptr slave, std::string message){
         int overall_memory_of_slave;
         sscanf(message.c_str(), "overall size: %d", &overall_memory_of_slave);
         sum_of_overall_memory += overall_memory_of_slave;
-        slave_info server_info(slave, overall_memory_of_slave, 0);
+
+        int slave_id = -1;
+        for(const auto &participant_it : participants_){
+            if (participant_it.second == slave){
+                slave_id = participant_it.first;
+                break;
+            }
+        }
+
+        slave_info server_info(slave, overall_memory_of_slave, 0, slave_id);
         if (participants_.size() % 2 == 0){
             server_info.is_main = true;
         }
@@ -30,6 +39,7 @@ void Slaves_Group::parse(server_participant_ptr slave, std::string message){
                 }
             }
         }
+
         slaves_info.insert({slave, server_info});
     }
     else if (message.find(std::string("command")) == 0) {
@@ -43,6 +53,7 @@ void Slaves_Group::parse_command_and_do_something(std::string message){
     std::string first_arg;
     std::string second_arg;
     std::string trash;
+    int client_id = -1;
 
     if (iss)
         iss >> trash;
@@ -51,7 +62,7 @@ void Slaves_Group::parse_command_and_do_something(std::string message){
     if (iss)
         iss >> trash;
     if (iss)
-        iss >> trash;
+        iss >> client_id;
     if (iss)
         iss >> trash;
     if (iss)
@@ -63,24 +74,81 @@ void Slaves_Group::parse_command_and_do_something(std::string message){
     if (command.find(std::string("send")) == 0)
         other_group_->send_command(message);
 
-    else if (command.find(std::string("stored_whole")) == 0)
-        other_group_->send_command(message);
+    else if (command.find(std::string("stored_whole")) == 0){
+        files[first_arg].index_of_file = std::stoi(second_arg);
+    }
 
     else if (command.find(std::string("read_whole")) == 0)
         other_group_->send_command(message);
 
-    else if (command.find(std::string("freed_whole")) == 0)
-        other_group_->send_command(message);
+    else if (command.find(std::string("freed_whole")) == 0){
+
+    }
 }
 
 
-void Slaves_Group::send_command(std::string message) {
-    int max_free_size = 0;
-    server_participant_ptr winner;
 
-    for (auto &it: slaves_info) {
-        if (it.second.overall_memory > max_free_size)
-            winner = it.first;
+
+void Slaves_Group::send_command(std::string message) {
+    std::istringstream iss(message);
+    std::string command;
+    std::string first_arg;
+    std::string second_arg;
+    std::string trash;
+    int client_id = -1;
+
+    if (iss)
+        iss >> trash;
+    if (iss)
+        iss >> command;
+    if (iss)
+        iss >> trash;
+    if (iss)
+        iss >> client_id;
+    if (iss)
+        iss >> trash;
+    if (iss)
+        iss >> first_arg;
+    if (iss)
+        iss >> trash;
+    std::getline(iss, second_arg);
+
+    if (command.find(std::string("to_store")) == 0){
+
+        int max_free_size = 0;
+        server_participant_ptr winner;
+        int winner_slave_id = -1;
+
+        for (auto &it: slaves_info) {
+            if (it.second.overall_memory > max_free_size) {
+                winner = it.first;
+                winner_slave_id = it.second.id;
+            }
+        }
+        (*winner).write_possible_sequence(message);
+
+
+        //storing partial information about data in slave, the data's location in slave will be filled out when
+        //the slave sends it back
+        files[first_arg] = file_bindings(winner_slave_id, second_arg.length());
     }
-    (*winner).write_possible_sequence(message);
+
+    else if (command.find(std::string("to_read")) == 0){
+        int index_of_data = files[first_arg].index_of_file;
+        int size_of_data = files[first_arg].size_of_data;
+        int slave_id = files[first_arg].storage_slave_id;
+        std::string command_to_slave = "command: to_read id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + "second_arg: " + std::to_string(size_of_data);
+        participants_[slave_id]->write_possible_sequence(command_to_slave);
+    }
+
+    else if (command.find(std::string("to_free")) == 0){
+        int index_of_data = files[first_arg].index_of_file;
+        int size_of_data = files[first_arg].size_of_data;
+        int slave_id = files[first_arg].storage_slave_id;
+        std::string command_to_slave = "command: to_free id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + "second_arg: " + std::to_string(size_of_data) + " " + first_arg;
+        participants_[slave_id]->write_possible_sequence(command_to_slave);
+    }
+
+
+
 }

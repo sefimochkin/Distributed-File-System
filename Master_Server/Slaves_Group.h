@@ -12,8 +12,8 @@
 #include "Clients_Group.h"
 
 struct slave_info{
-    slave_info(server_participant_ptr owner_, int overall_memory_, int reserved_memory_) :
-            owner(owner_), overall_memory(overall_memory_), reserved_memory(reserved_memory_){}
+    slave_info(server_participant_ptr owner_, int overall_memory_, int reserved_memory_, int id_) :
+            owner(owner_), overall_memory(overall_memory_), reserved_memory(reserved_memory_), id(id_){}
 
     server_participant_ptr owner;
 
@@ -25,6 +25,16 @@ struct slave_info{
 
     int overall_memory;
     int reserved_memory;
+
+    int id;
+};
+
+struct file_bindings{
+    file_bindings(int storage_slave_id_, int size_of_data_) :
+            storage_slave_id(storage_slave_id_), size_of_data(size_of_data_){}
+    int storage_slave_id;
+    int index_of_file = -1;
+    int size_of_data;
 };
 
 
@@ -41,6 +51,7 @@ public:
   ~Slaves_Group() = default;
 
 private:
+    std::unordered_map<std::string, file_bindings> files;
     int sum_of_overall_memory = 0;
     std::unordered_map<server_participant_ptr, slave_info> slaves_info;
 };

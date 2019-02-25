@@ -62,7 +62,7 @@ private:
         std::string first_arg;
         std::string second_arg;
         std::string trash;
-        int id = -1;
+        int client_id = -1;
 
         if (iss)
             iss >> trash;
@@ -71,7 +71,7 @@ private:
         if (iss)
             iss >> trash;
         if (iss)
-            iss >> id;
+            iss >> client_id;
         if (iss)
             iss >> trash;
         if (iss)
@@ -85,26 +85,34 @@ private:
             write_possible_sequence(message);
         }
 
-        if (command.find(std::string("store_whole")) == 0){
-            printf("storing: %s", first_arg.c_str());
-            int index = fs.store_data_blocks(first_arg);
-            std::string answer = "command: store_whole id: " + std::to_string(id) + " first_arg: " + std::to_string(index);
+        if (command.find(std::string("to_store")) == 0){
+            printf("storing: %s", second_arg.c_str());
+            int index = fs.store_data_blocks(second_arg);
+            std::string answer = "command: stored_whole id: " + std::to_string(client_id) + " first_arg: " + first_arg + "second_arg: " + std::to_string(index);
             write_possible_sequence(answer);
         }
 
-        if (command.find(std::string("read_whole")) == 0){
+        if (command.find(std::string("to_read")) == 0){
             printf("reading: %s", message.c_str());
             std::string output = fs.read_data_blocks((unsigned int)std::stoi(first_arg), (unsigned int)std::stoi(second_arg));
 
-            std::string answer = "command: read_whole id: " + std::to_string(id) + " first_arg: _ second_arg: " + output;
+            std::string answer = "command: read_whole id: " + std::to_string(client_id) + " first_arg: _ second_arg: " + output;
             write_possible_sequence(answer);
         }
 
-        if (command.find(std::string("free_whole")) == 0){
-            printf("reading: %s", message.c_str());
+        if (command.find(std::string("to_free")) == 0){
+            std::istringstream siss(second_arg);
+            int size_of_data = -1;
+            std::string name_of_file;
+
+            siss >> size_of_data;
+            siss >> name_of_file;
+
+            printf("freeing: %s", name_of_file.c_str());
+
             fs.free_data_blocks((unsigned int)std::stoi(first_arg), (unsigned int)std::stoi(second_arg));
 
-            std::string answer = "command: freed_whole id: " + std::to_string(id) + " first_arg: _ second_arg: ";
+            std::string answer = "command: freed_whole id: " + std::to_string(client_id) + " first_arg: " + name_of_file + " second_arg: ";
             write_possible_sequence(answer);
         }
     }

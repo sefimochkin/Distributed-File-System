@@ -7,10 +7,13 @@
 4. ~~Figure out how to send a string received by slave back to client~~
 5. ~~Add fs functionality for server(only directory and files names)~~
 6. ~~Add a protocol and functionality for sending fs commands from client to server~~
-7. Make a map in slaves_group: client_id->filename->slave_id and address_block_id, put block indexes there when storing in slave, and get data in blocks or free blocks in slaves on such command
+7. ~~Make a map in slaves_group: client_id->filename->slave_id and address_block_id, put block indexes there when storing in slave, and get data in blocks or free blocks in slaves on such command~~
 7. Import the c++ functionality of fs_handler in c-code of fs 
+7. Add rw-mutexes on files
 7. Add fs functionality for slaves(index of address block equals number of file_block in the system)
 8. Combine all functionality of fs (one file - one server)
 9. Add fragmentation of files (one file - different servers)
+7. Prohibit deleting directories or files if somebody else is in them 
+7. Add mutexes on shared parts of fs
 10. Add periodical backing up of servers
 11. TEST TEST TEST and CLEAN UP

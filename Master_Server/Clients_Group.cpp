@@ -56,7 +56,7 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
     }
 
 void Clients_Group::send_command(std::string message) {
-    int id = -1;
+    int client_id = -1;
 
     std::istringstream iss(message);
     std::string command;
@@ -72,7 +72,7 @@ void Clients_Group::send_command(std::string message) {
     if (iss)
         iss >> trash;
     if (iss)
-        iss >> id;
+        iss >> client_id;
     if (iss)
         iss >> trash;
     if (iss)
@@ -82,14 +82,11 @@ void Clients_Group::send_command(std::string message) {
     std::getline(iss, second_arg);
 
     if (command.find(std::string("send")) == 0) {
-        participants_[id]->write_possible_sequence(message);
-    }
-    else if (command.find(std::string("stored_whole")) == 0){
-        participants_[id]->write_possible_sequence(message);
+        participants_[client_id]->write_possible_sequence(message);
     }
 
     else if (command.find(std::string("read_whole")) == 0){
-        participants_[id]->write_possible_sequence(message);
+        participants_[client_id]->write_possible_sequence(message);
     }
 
     else if (command.find(std::string("freed_whole")) == 0){

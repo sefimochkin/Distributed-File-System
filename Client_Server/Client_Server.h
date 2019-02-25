@@ -109,6 +109,9 @@ private:
         if (command.find(std::string("print")) == 0) {
             printf("%s\n", second_arg.c_str());
         }
+        else if (command.find(std::string("read_whole")) == 0){
+            printf("READ: %s\n", second_arg.c_str());
+        }
     }
 };
 
