@@ -11,7 +11,7 @@
 class Clients_Group : public Server_Group {
 
 public:
-    Clients_Group() = default;
+    Clients_Group()=default;
 
     void send_command(std::string message);
 
@@ -20,6 +20,11 @@ public:
 
 
     ~Clients_Group() = default;
+
+    void add_pointer_to_other_group(Server_Group *other_group){
+        other_group_ = other_group;
+        fs.add_pointer_to_slaves_group(other_group);
+    }
 
 private:
     void parse_command_and_do_something(std::string message);

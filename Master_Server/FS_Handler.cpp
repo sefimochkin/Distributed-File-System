@@ -52,7 +52,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments < 3)
             answer =  std::string("Not sufficient arguments!");
         else {
-            answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id]);
+            answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
         }
     }
 
@@ -69,11 +69,11 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not sufficient arguments!");
         else {
             short failed = 0;
-            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed);
+            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
             answer =  std::string(output);
-            if(failed != 1) {
-                free(output);
-            }
+            //if(failed != 1) {
+            //    free(output);
+            //}
 
         }
     }
@@ -90,7 +90,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments < 3)
             answer =  std::string("Not sufficient arguments!");
         else {
-            answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id]);
+            answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
         }
     }
 
@@ -99,7 +99,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not sufficient arguments!");
         else {
             short failed = 0;
-            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed);
+            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
             answer =  std::string(output);
             if(failed != 1) {
                 free(output);
@@ -138,4 +138,16 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
     }
     return answer;
 
+}
+
+
+extern "C" void store_data_in_slave_wrapper(FS_Handler * fs_handler, int id,  char *name, char *data) {
+    fs_handler->store_data_in_slave(id, name, data);
+}
+
+extern "C" void read_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *name) {
+    fs_handler->read_data_in_slave(id, name);
+}
+extern "C" void free_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *name) {
+    fs_handler->free_data_in_slave(id, name);
 }

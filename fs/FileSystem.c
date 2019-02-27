@@ -213,7 +213,7 @@ char* touch(struct superblock *sb, const char* name, const char* input, struct i
             answer = "No more free blocks! Remove something!";
 
         else {
-            create_file(sb, name, input, (int) strlen(name), (int) strlen(input), directory, id);
+            create_file(sb, name, input, (int) strlen(name), (int) strlen(input), directory, fs_handler, id);
             answer = "";
         }
     }
@@ -221,9 +221,9 @@ char* touch(struct superblock *sb, const char* name, const char* input, struct i
 }
 
 
-char* read_file(struct superblock *sb, const char* name, struct inode* directory, short int* failed){
+char* read_file(struct superblock *sb, const char* name, struct inode* directory, short int* failed, FS_Handler * fs_handler, int id){
     char* answer = NULL;
-    struct inode *inode = get_inode_by_name(sb, name, directory, answer);
+    struct inode *inode = get_inode_by_name(sb, (char *) name, directory, answer);
 
     if(inode != NULL) {
         if(inode->is_directory){
@@ -231,7 +231,8 @@ char* read_file(struct superblock *sb, const char* name, struct inode* directory
             answer = "Can't read directory!";
             return answer;
         }
-        return open_file(sb, inode);
+        open_file(fs_handler, id, (char *) name);
+        return "";
     }
     else {
         *failed = 1;

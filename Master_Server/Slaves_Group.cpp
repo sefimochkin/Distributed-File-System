@@ -137,7 +137,7 @@ void Slaves_Group::send_command(std::string message) {
         int index_of_data = files[first_arg].index_of_file;
         int size_of_data = files[first_arg].size_of_data;
         int slave_id = files[first_arg].storage_slave_id;
-        std::string command_to_slave = "command: to_read id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + "second_arg: " + std::to_string(size_of_data);
+        std::string command_to_slave = "command: to_read id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + " second_arg: " + std::to_string(size_of_data);
         participants_[slave_id]->write_possible_sequence(command_to_slave);
     }
 
@@ -145,7 +145,7 @@ void Slaves_Group::send_command(std::string message) {
         int index_of_data = files[first_arg].index_of_file;
         int size_of_data = files[first_arg].size_of_data;
         int slave_id = files[first_arg].storage_slave_id;
-        std::string command_to_slave = "command: to_free id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + "second_arg: " + std::to_string(size_of_data) + " " + first_arg;
+        std::string command_to_slave = "command: to_free id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + " second_arg: " + std::to_string(size_of_data) + " " + first_arg;
         participants_[slave_id]->write_possible_sequence(command_to_slave);
     }
 

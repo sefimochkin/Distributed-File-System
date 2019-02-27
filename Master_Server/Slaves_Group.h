@@ -30,6 +30,7 @@ struct slave_info{
 };
 
 struct file_bindings{
+    file_bindings(){};
     file_bindings(int storage_slave_id_, int size_of_data_) :
             storage_slave_id(storage_slave_id_), size_of_data(size_of_data_){}
     int storage_slave_id;

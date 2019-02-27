@@ -8,7 +8,8 @@
 #include <string>
 #include "../Base_Classes/Server_Group.h"
 extern "C" {
-#include "../fs/FileSystem.h"
+    #include "../fs/FileSystem.h"
+//#include "../fs/inode.h"
 }
 #include <unordered_map>
 
@@ -56,6 +57,9 @@ private:
     struct superblock* sb;
 
 };
+
+
+
 
 
 #endif //DFS_SLAVE_FS_HANDLER_H
