@@ -95,10 +95,17 @@ private:
         }
 
         if (command.find(std::string("to_read")) == 0){
-            printf("reading: %s\n", message.c_str());
-            std::string output = fs.read_data_blocks((unsigned int)std::stoi(first_arg), (unsigned int)std::stoi(second_arg));
+            std::istringstream siss(second_arg);
+            int size_of_data = -1;
+            std::string name_of_file;
 
-            std::string answer = "command: read_whole id: " + std::to_string(client_id) + " first_arg: _ second_arg: " + output;
+            siss >> size_of_data;
+            siss >> name_of_file;
+            
+            printf("reading: %s\n", message.c_str());
+            std::string output = fs.read_data_blocks((unsigned int)std::stoi(first_arg), size_of_data);
+
+            std::string answer = "command: read_whole id: " + std::to_string(client_id) + " first_arg: " + name_of_file + " second_arg: " + output;
             write_possible_sequence(answer);
         }
 

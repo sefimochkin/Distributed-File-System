@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include "../Base_Classes/Server_Group.h"
 #include "Clients_Group.h"
+#include <boost/thread/shared_mutex.hpp>
 
 struct slave_info{
     slave_info(server_participant_ptr owner_, int overall_memory_, int reserved_memory_, int id_) :
@@ -32,10 +33,12 @@ struct slave_info{
 struct file_bindings{
     file_bindings(){};
     file_bindings(int storage_slave_id_, int size_of_data_) :
-            storage_slave_id(storage_slave_id_), size_of_data(size_of_data_){}
+            storage_slave_id(storage_slave_id_), size_of_data(size_of_data_), rw_mtx(new boost::shared_mutex()){
+    }
     int storage_slave_id;
     int index_of_file = -1;
     int size_of_data;
+    std::shared_ptr<boost::shared_mutex> rw_mtx;
 };
 
 

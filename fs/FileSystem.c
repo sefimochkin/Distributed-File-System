@@ -171,12 +171,12 @@ char* mkdirf(struct superblock *sb, const char* name, struct inode* directory){
     return answer;
 }
 
-char* rm_dir(struct superblock *sb, const char* name, struct inode* directory){
+char* rm_dir(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler, int id){
     char *answer = NULL;
-    struct inode* inode = get_inode_by_name(sb, name, directory, answer);
+    struct inode* inode = get_inode_by_name(sb, (char *) name, directory, answer);
     if(inode != NULL)
         if(inode->is_directory) {
-            delete_directory(sb, inode);
+            delete_directory(sb, inode, fs_handler, id, (char *) name);
             answer = "";
         }
         else {
@@ -186,14 +186,14 @@ char* rm_dir(struct superblock *sb, const char* name, struct inode* directory){
     return answer;
 }
 
-char* rm(struct superblock *sb, const char* name, struct inode* directory){
+char* rm(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler, int id){
     char *answer = NULL;
-    struct inode *inode = get_inode_by_name(sb, name, directory, answer);
+    struct inode *inode = get_inode_by_name(sb, (char *) name, directory, answer);
     if(inode != NULL)
         if(inode->is_directory)
             answer = "For deleting a directory use rmdir";
         else {
-            delete_file(sb, inode);
+            delete_file(sb, inode, fs_handler, id, (char *) name);
             answer = "";
         }
     return answer;

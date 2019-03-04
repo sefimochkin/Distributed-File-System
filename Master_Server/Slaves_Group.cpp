@@ -76,13 +76,16 @@ void Slaves_Group::parse_command_and_do_something(std::string message){
 
     else if (command.find(std::string("stored_whole")) == 0){
         files[first_arg].index_of_file = std::stoi(second_arg);
+        files[first_arg].rw_mtx->unlock();
     }
 
-    else if (command.find(std::string("read_whole")) == 0)
+    else if (command.find(std::string("read_whole")) == 0) {
+        files[first_arg].rw_mtx->unlock_shared();
         other_group_->send_command(message);
+    }
 
     else if (command.find(std::string("freed_whole")) == 0){
-
+        files[first_arg].rw_mtx->unlock();
     }
 }
 
@@ -125,23 +128,27 @@ void Slaves_Group::send_command(std::string message) {
                 winner_slave_id = it.second.id;
             }
         }
-        (*winner).write_possible_sequence(message);
-
-
+        printf("making stuff\n");
         //storing partial information about data in slave, the data's location in slave will be filled out when
         //the slave sends it back
         files[first_arg] = file_bindings(winner_slave_id, second_arg.length());
+        printf("locking stuff\n");
+        files[first_arg].rw_mtx->lock();
+        printf("sending stuff\n");
+        (*winner).write_possible_sequence(message);
     }
 
     else if (command.find(std::string("to_read")) == 0){
+        files[first_arg].rw_mtx->lock_shared();
         int index_of_data = files[first_arg].index_of_file;
         int size_of_data = files[first_arg].size_of_data;
         int slave_id = files[first_arg].storage_slave_id;
-        std::string command_to_slave = "command: to_read id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + " second_arg: " + std::to_string(size_of_data);
+        std::string command_to_slave = "command: to_read id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + " second_arg: " + std::to_string(size_of_data) + " " + first_arg;
         participants_[slave_id]->write_possible_sequence(command_to_slave);
     }
 
     else if (command.find(std::string("to_free")) == 0){
+        files[first_arg].rw_mtx->lock();
         int index_of_data = files[first_arg].index_of_file;
         int size_of_data = files[first_arg].size_of_data;
         int slave_id = files[first_arg].storage_slave_id;

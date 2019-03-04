@@ -28,8 +28,8 @@ struct inode {
 typedef
 struct FS_Handler
         FS_Handler;
-extern void store_data_in_slave_wrapper(FS_Handler * fs_handler, int id,  char *name, char *data);
 
+extern void store_data_in_slave_wrapper(FS_Handler * fs_handler, int id,  char *name, char *data);
 extern void read_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *name);
 extern void free_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *name);
 
@@ -38,9 +38,9 @@ struct inode * create_directory(struct superblock *sb, char* name, int size_of_n
 void add_file_to_directory(struct superblock *sb, struct inode* directory, struct inode* added_inode);
 
 
-void delete_file(struct superblock *sb, struct inode* inode);
-void delete_directory(struct superblock *sb, struct inode* inode);
-void delete_file_from_directory(struct superblock *sb, struct inode* deleted_inode);
+void delete_file(struct superblock *sb, struct inode* inode, FS_Handler *fs_handler, int id, char* name);
+void delete_directory(struct superblock *sb, struct inode* inode, FS_Handler *fs_handler, int id, char* name);
+void delete_file_from_directory(struct superblock *sb, struct inode* deleted_inode, FS_Handler *fs_handler, int id, char* name);
 
 char* get_file_name(struct superblock *sb, struct inode* inode);
 void open_file(FS_Handler *fs_handler, int id, char *name);

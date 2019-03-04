@@ -46,6 +46,7 @@ public:
     void free_data_in_slave(int id, char *name) {
         std::string
                 message = "command: to_free id: " + std::to_string(id) + " first_arg: " + name + " second_arg: ";
+        free(name);
         slaves_group_->send_command(message);
     }
 

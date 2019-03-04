@@ -82,12 +82,13 @@ struct block* get_n_continuous_free_blocks(struct superblock *sb, int number_of_
 }
 
 
-void free_inode(struct superblock *sb, struct inode* inode){
+void free_inode(struct superblock *sb, struct inode* inode, FS_Handler *fs_handler, int id){
+    char* name = get_file_name(sb, inode);
     free_data_in_blocks(sb, &(sb->blocks_array[inode->index_of_blocks_array_of_name]), inode->size_of_name_in_chars, inode->is_directory);
     if(inode->is_directory)
         free_data_in_blocks(sb, &(sb->blocks_array[inode->index_of_blocks_array_of_inodes]), inode->number_of_files_in_directory, inode->is_directory);
     else
-        free_data_in_blocks(sb, &(sb->blocks_array[inode->index_of_blocks_array_of_file]), inode->size_of_file_in_chars, inode->is_directory);
+        free_data_in_slave_wrapper(fs_handler, id, name);
     unsigned int i = inode->number_of_inode / 8;
     unsigned int j = inode->number_of_inode % 8;
     set_nth_bit(&((char*)sb->inods_bitmap)[i], j, 0);

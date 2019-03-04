@@ -44,7 +44,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
-            answer = rm_dir(sb, first_arg.c_str(), *clients_cur_directories[client_id]);
+            answer = rm_dir(sb, first_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
         }
     }
 
@@ -60,7 +60,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
-            answer = rm(sb, first_arg.c_str(), *clients_cur_directories[client_id]);
+            answer = rm(sb, first_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
         }
     }
 

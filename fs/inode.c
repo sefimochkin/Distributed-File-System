@@ -106,15 +106,15 @@ void add_file_to_directory(struct superblock *sb, struct inode* directory, struc
 }
 
 
-void delete_file(struct superblock *sb, struct inode* inode){
+void delete_file(struct superblock *sb, struct inode* inode, FS_Handler *fs_handler, int id, char* name){
     if(inode->is_directory)
-        delete_directory(sb, inode);
+        delete_directory(sb, inode, fs_handler, id, name);
     else
-        delete_file_from_directory(sb, inode);
+        delete_file_from_directory(sb, inode, fs_handler, id, name);
 }
 
 
-void delete_directory(struct superblock *sb, struct inode* inode){
+void delete_directory(struct superblock *sb, struct inode* inode, FS_Handler *fs_handler, int id, char* name){
     struct inode **inodes_addresses = malloc(sizeof(struct inode *) * inode->number_of_files_in_directory);
 
     int number_of_adress_blocks = get_number_of_address_blocks(sb, inode->number_of_files_in_directory);
@@ -138,20 +138,20 @@ void delete_directory(struct superblock *sb, struct inode* inode){
     for (int i = 0; i < inode->number_of_files_in_directory; i++) {
         struct inode* inode_for_deleting = inodes_addresses[i];
         if (inode_for_deleting->is_directory)
-            delete_directory(sb, inode_for_deleting);
+            delete_directory(sb, inode_for_deleting, fs_handler, id, name);
         else
-            delete_file_from_directory(sb, inode_for_deleting);
+            delete_file_from_directory(sb, inode_for_deleting, fs_handler, id, name);
     }
 
     //more cleaning up
     free(inodes_addresses);
     free(inodes_address_blocks);
 
-    delete_file_from_directory(sb, inode);
+    delete_file_from_directory(sb, inode, fs_handler, id, name);
 }
 
 
-void delete_file_from_directory(struct superblock *sb, struct inode* deleted_inode){
+void delete_file_from_directory(struct superblock *sb, struct inode* deleted_inode, FS_Handler *fs_handler, int id, char* name){
     struct inode* directory = &(sb->inods_array[deleted_inode->index_of_owner_inode]);
     int number_of_inodes = directory->number_of_files_in_directory;
     struct inode** inodes_addresses = malloc(sizeof(void*) * (number_of_inodes - 1));
@@ -179,7 +179,7 @@ void delete_file_from_directory(struct superblock *sb, struct inode* deleted_ino
         free_block(sb, previous_inodes_address_blocks[i]);
 
     //deleting the file
-    free_inode(sb, deleted_inode);
+    free_inode(sb, deleted_inode, fs_handler, id);
 
     //putting all inodes into new blocks
     int number_of_new_address_blocks = get_number_of_address_blocks(sb, number_of_inodes-1);

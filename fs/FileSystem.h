@@ -20,8 +20,8 @@ char* close_filesystem(char* file_system_name, char* filesystem);
 
 char* ls(struct superblock *sb, struct inode* directory);
 char* mkdirf(struct superblock *sb, const char* name, struct inode* directory);
-char* rm_dir(struct superblock *sb, const char* name, struct inode* directory);
-char* rm(struct superblock *sb, const char* name, struct inode* directory);
+char* rm_dir(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler, int id);
+char* rm(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler, int id);
 char* touch(struct superblock *sb, const char* name, const char* input, struct inode* directory, FS_Handler *fs_handler, int id);
 char* read_file(struct superblock *sb, const char* name, struct inode* directory, short * failed, FS_Handler * fs_handler, int id);
 char* cd(struct superblock *sb, const char*name, struct inode** current_directory);

@@ -24,12 +24,16 @@ struct superblock {
     char* blocks_data_array;
 };
 
+typedef
+struct FS_Handler
+        FS_Handler;
+
 struct inode * get_free_inode(struct superblock *sb);
 struct block* get_free_block(struct superblock *sb);
 
 struct block* get_n_continuous_free_blocks(struct superblock *sb, int number_of_blocks);
 
-void free_inode(struct superblock *sb, struct inode* inode);
+void free_inode(struct superblock *sb, struct inode* inode, FS_Handler *fs_handler, int id);
 void free_block(struct superblock *sb, struct block* block);
 
 void put_index_in_address_block(struct superblock *sb, char* address_block, unsigned int index);

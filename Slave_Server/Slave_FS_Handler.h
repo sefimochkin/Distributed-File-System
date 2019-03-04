@@ -25,7 +25,7 @@ public:
 
     unsigned int store_data_blocks(std::string data);
     std::string read_data_blocks(unsigned int index_of_blocks, int size_of_data);
-    std::string free_data_blocks(unsigned int index_of_blocks, int size_of_data);
+    void free_data_blocks(unsigned int index_of_blocks, int size_of_data);
 
 private:
     char * name = const_cast<char *>("./slave_fs_files");
