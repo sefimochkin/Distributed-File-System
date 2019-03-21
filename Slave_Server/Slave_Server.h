@@ -81,6 +81,8 @@ private:
         if (iss)
             iss >> trash;
         std::getline(iss, second_arg);
+        if (second_arg.length() > 0)
+            second_arg = second_arg.substr(1);
 
         if (command.find(std::string("send")) == 0){
             printf("YAAAAAAY, received: %s", message.c_str());

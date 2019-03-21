@@ -18,6 +18,7 @@ public:
 
     void parse(server_participant_ptr slave, std::string message);
 
+    void do_something_on_leave(int server_id);
 
     ~Clients_Group() = default;
 
@@ -30,6 +31,7 @@ private:
     void parse_command_and_do_something(std::string message);
     FS_Handler fs;
 };
+
 
 
 #endif //DFS_SLAVE_CLIENTS_GROUP_H

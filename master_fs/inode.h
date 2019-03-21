@@ -34,8 +34,8 @@ extern void read_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *na
 extern void free_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *name);
 
 struct inode * create_file(struct superblock *sb, char* name, char* file, int size_of_name, int size_of_file, struct inode* owner, FS_Handler *fs_handler, int id);
-struct inode * create_directory(struct superblock *sb, char* name, int size_of_name, struct inode* owner);
-void add_file_to_directory(struct superblock *sb, struct inode* directory, struct inode* added_inode);
+struct inode * create_directory(struct superblock *sb, char* name, int size_of_name, struct inode* owner, FS_Handler *fs_handler, short is_root);
+void add_file_to_directory(struct superblock *sb, struct inode* directory, struct inode* added_inode, FS_Handler *fs_handler);
 
 
 void delete_file(struct superblock *sb, struct inode* inode, FS_Handler *fs_handler, int id, char* name);
@@ -45,7 +45,7 @@ void delete_file_from_directory(struct superblock *sb, struct inode* deleted_ino
 char* get_file_name(struct superblock *sb, struct inode* inode);
 void open_file(FS_Handler *fs_handler, int id, char *name);
 
-char* get_file_names_from_directory(struct superblock *sb, struct inode* directory);
+char* get_file_names_from_directory(struct superblock *sb, struct inode* directory, FS_Handler *fs_handler);
 
 struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* directory, char* answer);
 short check_doubling_name(struct superblock *sb, char*name, struct inode* directory);

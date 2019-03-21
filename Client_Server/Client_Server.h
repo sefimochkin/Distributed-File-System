@@ -60,6 +60,8 @@ private:
         if (iss)
             iss >> first_arg;
         std::getline(iss, second_arg);
+        if (second_arg.length() > 0)
+            second_arg = second_arg.substr(1);
 
         std::string answer =  "command: " + command + " id: " + std::to_string(id) + " first_arg: " + first_arg + " second_arg: " + second_arg;
 
@@ -103,6 +105,8 @@ private:
         if (iss)
             iss >> trash;
         std::getline(iss, second_arg);
+        if (second_arg.length() > 0)
+            second_arg = second_arg.substr(1);
 
         //printf("got command: %s\n", command.c_str());
 

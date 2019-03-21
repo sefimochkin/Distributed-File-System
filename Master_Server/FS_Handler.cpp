@@ -3,7 +3,8 @@
 //
 
 #include "FS_Handler.h"
-//#include "../fs/FileSystem.h"
+//#include "../master_fs/FileSystem.h"
+#include <algorithm>
 
 
 std::string FS_Handler::do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg){
@@ -26,8 +27,9 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
     std::string answer;
 
     if(command.find(std::string("ls")) == 0){
-        char* output = ls(sb, *clients_cur_directories[client_id]);
+        char* output = ls(sb, *clients_cur_directories[client_id], this);
         answer = std::string(output);
+        std::replace( answer.begin(), answer.end(), '\n', ' ');
         if((*clients_cur_directories[client_id])->number_of_files_in_directory > 0)
             free(output);
     }
@@ -36,7 +38,8 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
-            answer = mkdirf(sb, first_arg.c_str(), *clients_cur_directories[client_id]);
+            if (file_blocks_left )
+            answer = mkdirf(sb, first_arg.c_str(), *clients_cur_directories[client_id], this);
         }
     }
 
@@ -82,7 +85,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
-            answer = cd(sb, first_arg.c_str(), clients_cur_directories[client_id]);
+            answer = cd(sb, first_arg.c_str(), clients_cur_directories[client_id], this);
         }
     }
 
@@ -151,3 +154,36 @@ extern "C" void read_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char
 extern "C" void free_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *name) {
     fs_handler->free_data_in_slave(id, name);
 }
+
+extern "C" void lock_fs_mutex(FS_Handler * fs_handler) {
+    fs_handler->fs_mutex->lock();
+}
+
+extern "C" void unlock_fs_mutex(FS_Handler * fs_handler) {
+    fs_handler->fs_mutex->unlock();
+}
+
+extern "C" void lock_inode_mutex(FS_Handler * fs_handler, struct inode* inode) {
+    fs_handler->inode_locks[inode]->lock();
+}
+
+extern "C" void unlock_inode_mutex(FS_Handler * fs_handler, struct inode* inode) {
+    fs_handler->inode_locks[inode]->unlock();
+}
+
+extern "C" void shared_lock_inode_mutex(FS_Handler * fs_handler, struct inode* inode) {
+    fs_handler->inode_locks[inode]->lock_shared();
+}
+
+extern "C" void shared_unlock_inode_mutex(FS_Handler * fs_handler, struct inode* inode) {
+    fs_handler->inode_locks[inode]->unlock_shared();
+}
+
+extern "C" short try_lock_inode_mutex(FS_Handler * fs_handler, struct inode* inode) {
+    if(fs_handler->inode_locks[inode]->try_lock())
+        return 1;
+    else
+        return 0;
+}
+
+

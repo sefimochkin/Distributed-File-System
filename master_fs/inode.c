@@ -6,12 +6,15 @@
 #include <memory.h>
 #include "inode.h"
 #include "../utils/Network_utils.h"
+#include "FileSystem.h"
 
 struct inode * create_file(struct superblock *sb, char* name, char* file, int size_of_name, int size_of_file, struct inode* owner, struct FS_Handler *fs_handler, int id){
-    struct inode *inode = get_free_inode(sb);
+    struct inode *inode = get_free_inode(sb, fs_handler);
+
+    lock_inode_mutex(fs_handler, inode);
 
     inode->is_directory = 0;
-    inode->index_of_blocks_array_of_name = put_data_in_blocks(sb, name, size_of_name);
+    inode->index_of_blocks_array_of_name = put_data_in_blocks(sb, name, size_of_name, fs_handler);
     //inode->index_of_blocks_array_of_file = put_data_in_blocks(sb, file, size_of_file);
     store_data_in_slave_wrapper(fs_handler, id, name, file);
 
@@ -21,31 +24,36 @@ struct inode * create_file(struct superblock *sb, char* name, char* file, int si
 
     if(owner != NULL) {
         inode->index_of_owner_inode = owner->number_of_inode;
-        add_file_to_directory(sb, owner, inode);
+        add_file_to_directory(sb, owner, inode, fs_handler);
     }
+
+    unlock_inode_mutex(fs_handler, inode);
 
     return inode;
 }
 
 
-struct inode * create_directory(struct superblock *sb, char* name, int size_of_name, struct inode* owner){
-    struct inode *inode = get_free_inode(sb);
+struct inode * create_directory(struct superblock *sb, char* name, int size_of_name, struct inode* owner, struct FS_Handler *fs_handler, short is_root){
+    struct inode *inode = get_free_inode(sb, fs_handler);
+    if (!is_root)
+        lock_inode_mutex(fs_handler, inode);
 
     inode->is_directory = 1;
-    inode->index_of_blocks_array_of_name = put_data_in_blocks(sb, name, size_of_name);
+    inode->index_of_blocks_array_of_name = put_data_in_blocks(sb, name, size_of_name, fs_handler);
     inode->number_of_files_in_directory = 0;
     inode->size_of_name_in_chars = size_of_name;
 
     if(owner != NULL){
         inode->index_of_owner_inode = owner->number_of_inode;
-        add_file_to_directory(sb, owner, inode);
+        add_file_to_directory(sb, owner, inode, fs_handler);
     }
-
+    if (!is_root)
+        unlock_inode_mutex(fs_handler, inode);
     return inode;
 }
 
 
-void add_file_to_directory(struct superblock *sb, struct inode* directory, struct inode* added_inode){
+void add_file_to_directory(struct superblock *sb, struct inode* directory, struct inode* added_inode, struct FS_Handler *fs_handler){
     int number_of_inodes = directory->number_of_files_in_directory;
     if(number_of_inodes * sizeof(unsigned int) % sb->number_of_bytes_in_block == 0) {
         // in case all space in given blocks is gone
@@ -72,11 +80,11 @@ void add_file_to_directory(struct superblock *sb, struct inode* directory, struc
 
         //cleaning up
         for (int i = 0; i < number_of_address_blocks; i++)
-            free_block(sb, previous_inodes_address_blocks[i]);
+            free_block(sb, previous_inodes_address_blocks[i], fs_handler);
 
 
         //putting all inodes into new blocks
-        struct block *new_address_blocks = get_n_continuous_free_blocks(sb, number_of_address_blocks + 1);
+        struct block *new_address_blocks = get_n_continuous_free_blocks(sb, number_of_address_blocks + 1, fs_handler);
         for (int k = 0; k < number_of_inodes + 1; k++) {
             int i = k * sb->number_of_chars_in_index / sb->number_of_bytes_in_block;
             int j = k * sb->number_of_chars_in_index % sb->number_of_bytes_in_block;
@@ -133,7 +141,7 @@ void delete_directory(struct superblock *sb, struct inode* inode, FS_Handler *fs
 
     //cleaning up
     for (int i = 0; i < number_of_adress_blocks; i++)
-        free_block(sb, inodes_address_blocks[i]);
+        free_block(sb, inodes_address_blocks[i], fs_handler);
 
     for (int i = 0; i < inode->number_of_files_in_directory; i++) {
         struct inode* inode_for_deleting = inodes_addresses[i];
@@ -176,7 +184,7 @@ void delete_file_from_directory(struct superblock *sb, struct inode* deleted_ino
 
     //cleaning up
     for (int i = 0; i < number_of_adress_blocks; i++)
-        free_block(sb, previous_inodes_address_blocks[i]);
+        free_block(sb, previous_inodes_address_blocks[i], fs_handler);
 
     //deleting the file
     free_inode(sb, deleted_inode, fs_handler, id);
@@ -184,7 +192,7 @@ void delete_file_from_directory(struct superblock *sb, struct inode* deleted_ino
     //putting all inodes into new blocks
     int number_of_new_address_blocks = get_number_of_address_blocks(sb, number_of_inodes-1);
 
-    struct block *new_address_blocks = get_n_continuous_free_blocks(sb, number_of_new_address_blocks);
+    struct block *new_address_blocks = get_n_continuous_free_blocks(sb, number_of_new_address_blocks, fs_handler);
     for (int k = 0; k < number_of_inodes - 1; k++) {
         int i = k * sb->number_of_chars_in_index / sb->number_of_bytes_in_block;
         int j = k * sb->number_of_chars_in_index % sb->number_of_bytes_in_block;
@@ -214,7 +222,7 @@ void open_file(FS_Handler *fs_handler, int id, char* name){
 }
 
 
-char* get_file_names_from_directory(struct superblock *sb, struct inode* directory){
+char* get_file_names_from_directory(struct superblock *sb, struct inode* directory, FS_Handler *fs_handler){
     if(directory->number_of_files_in_directory > 0){
         int number_of_inodes = directory->number_of_files_in_directory;
         struct inode** inodes_addresses = malloc(sizeof(void*) * number_of_inodes);
@@ -226,17 +234,19 @@ char* get_file_names_from_directory(struct superblock *sb, struct inode* directo
             struct inode* inode = get_inode_by_index_in_address_block(sb, address_block->data + j);
 
             inodes_addresses[k] = inode;
+
+            shared_lock_inode_mutex(fs_handler, inode);
         }
 
         int output_length = 0;
         for (int i = 0; i < number_of_inodes; i++)
             output_length += inodes_addresses[i]->size_of_name_in_chars;
 
-        output_length += directory->number_of_files_in_directory - 1;
+        output_length += number_of_inodes - 1;
 
         char* output_str = malloc(output_length + 1);
         int i = 0;
-        for (int k = 0; k < directory->number_of_files_in_directory; k++){
+        for (int k = 0; k < number_of_inodes; k++){
             char* inode_name = get_file_name(sb, inodes_addresses[k]);
             for(int j = 0; j < inodes_addresses[k]->size_of_name_in_chars; j++){
                 output_str[i] = inode_name[j];
@@ -247,7 +257,9 @@ char* get_file_names_from_directory(struct superblock *sb, struct inode* directo
             else if(i != output_length)
                 output_str[i] = '\n';
             i++;
+
             //cleaning up
+            shared_unlock_inode_mutex(fs_handler, inodes_addresses[k]);
             free(inode_name);
         }
 

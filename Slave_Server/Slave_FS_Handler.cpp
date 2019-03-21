@@ -16,5 +16,5 @@ std::string Slave_FS_Handler::read_data_blocks(unsigned int index_of_blocks, int
     return answer;
 }
 void Slave_FS_Handler::free_data_blocks(unsigned int index_of_blocks, int size_of_data){
-    free_data_in_blocks(sb, &sb->blocks_array[index_of_blocks], size_of_data, 0);
+    free_data_in_blocks(sb, &sb->blocks_array[index_of_blocks], size_of_data);
 }

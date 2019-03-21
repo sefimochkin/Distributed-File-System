@@ -13,7 +13,7 @@
 #define NUMBER_OF_BLOCKS  16384
 #define NUMBER_OF_BYTES_IN_BLOCK  32
 #define NUMBER_OF_CHARS_IN_INDEX  4
-#define MAGIC_SYMBOLS "FILESYSTEM BY SERGEY EFIMOCHKIN"
+#define MAGIC_SYMBOLS "MASTER OF DFS BY SERGEY EFIMOCHKIN"
 
 void * get_memory_for_filesystem(){
     size_t size_of_filesystem = sizeof(struct superblock) + NUMBER_OF_INODES / 8 + NUMBER_OF_BLOCKS / 8
@@ -26,7 +26,7 @@ void * get_memory_for_filesystem(){
 }
 
 
-struct inode * create_filesystem(char *filesystem){
+struct inode * create_filesystem(char *filesystem, struct FS_Handler * fs_handler){
 
     struct superblock* sb = (struct superblock*) filesystem;
     sb->number_of_inods = NUMBER_OF_INODES;
@@ -62,26 +62,25 @@ struct inode * create_filesystem(char *filesystem){
         sb->blocks_array[i].data = sb->blocks_data_array + i * NUMBER_OF_BYTES_IN_BLOCK;
     }
 
-    struct inode * root =  create_directory(sb, "root", 4, NULL);
+    struct inode * root =  create_directory(sb, "root", 4, NULL, fs_handler, 1);
 
     return root;
 }
 
-struct inode * open_filesystem(char* file_system_name, char* filesystem){
+struct inode * open_filesystem(char* file_system_name, char* filesystem, FS_Handler *fs_handler){
     FILE* file_with_filesystem = fopen(file_system_name, "r");
     char* magic_symbols;
 
     if(file_with_filesystem == NULL)
     {
-        struct inode* root = create_filesystem(filesystem);
+        struct inode* root = create_filesystem(filesystem, fs_handler);
         return root;
     }
-    else{
-        magic_symbols = malloc(strlen(MAGIC_SYMBOLS) + 1);
-        memset(magic_symbols, 0, (strlen(MAGIC_SYMBOLS) + 1));
-        fread(magic_symbols, sizeof(char), strlen(MAGIC_SYMBOLS), file_with_filesystem);
-        free(magic_symbols);
-    }
+
+    magic_symbols = malloc(strlen(MAGIC_SYMBOLS) + 1);
+    memset(magic_symbols, 0, (strlen(MAGIC_SYMBOLS) + 1));
+    fread(magic_symbols, sizeof(char), strlen(MAGIC_SYMBOLS), file_with_filesystem);
+    free(magic_symbols);
 
     struct superblock* sb = (struct superblock*) filesystem;
     fread(sb, sizeof(struct superblock), 1, file_with_filesystem);
@@ -148,11 +147,11 @@ char* close_filesystem(char* file_system_name, char* filesystem){
     return answer;
 }
 
-char* ls(struct superblock *sb, struct inode* directory){
-    return get_file_names_from_directory(sb, directory);
+char* ls(struct superblock *sb, struct inode* directory, FS_Handler *fs_handler){
+    return get_file_names_from_directory(sb, directory, fs_handler);
 }
 
-char* mkdirf(struct superblock *sb, const char* name, struct inode* directory){
+char* mkdirf(struct superblock *sb, const char* name, struct inode* directory, FS_Handler * fs_handler){
     char* answer;
     if(check_doubling_name(sb, name, directory) == 0)
         answer = "File with this name already exists!";
@@ -164,7 +163,7 @@ char* mkdirf(struct superblock *sb, const char* name, struct inode* directory){
             answer = "No more free blocks! Remove something!";
 
         else {
-            create_directory(sb, name, (int) strlen(name), directory);
+            create_directory(sb, name, (int) strlen(name), directory, fs_handler, 0);
             answer = "";
         }
     }
@@ -176,8 +175,13 @@ char* rm_dir(struct superblock *sb, const char* name, struct inode* directory, F
     struct inode* inode = get_inode_by_name(sb, (char *) name, directory, answer);
     if(inode != NULL)
         if(inode->is_directory) {
-            delete_directory(sb, inode, fs_handler, id, (char *) name);
-            answer = "";
+            if (try_lock_inode_mutex(fs_handler, inode)) {
+                delete_directory(sb, inode, fs_handler, id, (char *) name);
+                answer = "";
+                unlock_inode_mutex(fs_handler, inode);
+            }
+            else
+                answer = "Somebody else is inside the directory, can't delete!";
         }
         else {
             answer = "For deleting a file use rm";
@@ -193,8 +197,12 @@ char* rm(struct superblock *sb, const char* name, struct inode* directory, FS_Ha
         if(inode->is_directory)
             answer = "For deleting a directory use rmdir";
         else {
+            lock_inode_mutex(fs_handler, inode);
+
             delete_file(sb, inode, fs_handler, id, (char *) name);
             answer = "";
+
+            unlock_inode_mutex(fs_handler, inode);
         }
     return answer;
 }
@@ -231,7 +239,12 @@ char* read_file(struct superblock *sb, const char* name, struct inode* directory
             answer = "Can't read directory!";
             return answer;
         }
+        shared_lock_inode_mutex(fs_handler, inode);
+
         open_file(fs_handler, id, (char *) name);
+
+        shared_unlock_inode_mutex(fs_handler, inode); // can it break because of asynchronous communication with slave?
+                                                        // maybe it's better to unlock upon receiving the answer from slave?
         return "";
     }
     else {
@@ -240,14 +253,19 @@ char* read_file(struct superblock *sb, const char* name, struct inode* directory
     }
 }
 
-char* cd(struct superblock *sb, const char* name, struct inode** current_directory){
+char* cd(struct superblock *sb, const char* name, struct inode** current_directory, FS_Handler *fs_handler){
     char* answer = NULL;
     if(strcmp(name, "..") == 0) {
+        shared_unlock_inode_mutex(fs_handler, *current_directory);
         *current_directory = &(sb->inods_array[(*current_directory)->index_of_owner_inode]);
         answer = "";
     }
     else if (strcmp(name, "/") == 0) {
-        *current_directory = sb->inods_array; // root inode
+        while (&(sb->inods_array[(*current_directory)->index_of_owner_inode]) != sb->inods_array){ //going up to the root
+            shared_unlock_inode_mutex(fs_handler, *current_directory);
+            *current_directory = &(sb->inods_array[(*current_directory)->index_of_owner_inode]);
+        }
+        //*current_directory = sb->inods_array; // root inode
         answer = "";
     }
     else {
@@ -256,6 +274,7 @@ char* cd(struct superblock *sb, const char* name, struct inode** current_directo
             if (!inode->is_directory)
                 answer =  "Not a directory!";
             else {
+                shared_lock_inode_mutex(fs_handler, inode);
                 *current_directory = inode;
                 answer = "";
             }

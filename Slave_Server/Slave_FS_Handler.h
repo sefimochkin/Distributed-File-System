@@ -6,7 +6,7 @@
 #define DFS_SLAVE_SLAVES_FS_HANDLER_H
 
 extern "C" {
-    #include "../fs/FileSystem.h"
+    #include "../slave_fs/FileSystem.h"
 }
 #include <string>
 #include <unordered_map>
@@ -18,7 +18,7 @@ public:
 
         filesystem = get_memory_for_filesystem();
 
-        root = open_filesystem(name, (char*)filesystem);
+        open_filesystem(name, (char*)filesystem);
 
         sb = (struct superblock *) filesystem;
     }
@@ -30,7 +30,6 @@ public:
 private:
     char * name = const_cast<char *>("./slave_fs_files");
     void* filesystem;
-    struct inode* root;
     struct superblock* sb;
 
 };

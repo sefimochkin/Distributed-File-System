@@ -38,6 +38,8 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
         if (iss)
             iss >> trash;
         std::getline(iss, second_arg);
+        if (second_arg.length() > 0)
+            second_arg = second_arg.substr(1);
 
         //printf("got command: %s\n", command.c_str());
 
@@ -80,6 +82,8 @@ void Clients_Group::send_command(std::string message) {
     if (iss)
         iss >> trash;
     std::getline(iss, second_arg);
+    if (second_arg.length() > 0)
+        second_arg = second_arg.substr(1);
 
     if (command.find(std::string("send")) == 0) {
         participants_[client_id]->write_possible_sequence(message);
@@ -92,4 +96,8 @@ void Clients_Group::send_command(std::string message) {
     else if (command.find(std::string("freed_whole")) == 0){
     }
     //(*winner).write_possible_sequence(message);
+}
+
+void Clients_Group::do_something_on_leave(int server_id) {
+    fs.client_leave(server_id);
 }

@@ -13,12 +13,11 @@
 8. ~~Combine all functionality of fs (one file - one server)~~
 7. ~~Add rw-mutexes on files~~
 7. ~~Clean up on the sending-receiving and add correct rm!~~
-7. Make base class for fs_handlers and derive master's and slaves' fs_handlers from it
-7. Figure out the spaces before file data problem
+7. ~~Figure out the spaces before file data problem~~
 7. Add the count of blocks on slaves and base_fs
 7. Add export-import functions for client
 9. Add fragmentation of files (one file - different servers)
-7. Prohibit deleting directories if somebody else is in them 
-7. Add mutexes on shared parts of fs
+7. ~~Prohibit deleting directories if somebody else is in them~~
+7. ~~Add mutexes on shared parts of fs~~
 10. Add periodical backing up of servers
 11. TEST TEST TEST and CLEAN UP

@@ -36,7 +36,8 @@ int main(int argc, char* argv[])
         iss >> command;
         iss >> first_argument;
         std::getline(iss, second_argument);
-
+        if (second_argument.length() > 0)
+            second_argument = second_argument.substr(1);
 
         while(command.find("finish") != 0){
             client.input_message(command, first_argument, second_argument);
@@ -50,6 +51,9 @@ int main(int argc, char* argv[])
             iss >> command;
             iss >> first_argument;
             std::getline(iss, second_argument);
+            if (second_argument.length() > 0)
+                second_argument = second_argument.substr(1);
+
             //int number_of_arguments = std::sscanf(input_line.c_str(), "%s %s %s", command.c_str(),
             //                                      first_argument.c_str(), second_argument.c_str());
         }

@@ -52,6 +52,8 @@ public:
 
   void parse(server_participant_ptr slave, std::string message);
 
+  void do_something_on_leave(int server_id);
+
   ~Slaves_Group() = default;
 
 private:

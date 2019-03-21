@@ -70,6 +70,8 @@ void Slaves_Group::parse_command_and_do_something(std::string message){
     if (iss)
         iss >> trash;
     std::getline(iss, second_arg);
+    if (second_arg.length() > 0)
+        second_arg = second_arg.substr(1);
 
     if (command.find(std::string("send")) == 0)
         other_group_->send_command(message);
@@ -115,6 +117,8 @@ void Slaves_Group::send_command(std::string message) {
     if (iss)
         iss >> trash;
     std::getline(iss, second_arg);
+    if (second_arg.length() > 0)
+        second_arg = second_arg.substr(1);
 
     if (command.find(std::string("to_store")) == 0){
 
@@ -155,7 +159,6 @@ void Slaves_Group::send_command(std::string message) {
         std::string command_to_slave = "command: to_free id: " + std::to_string(client_id) + " first_arg: " + std::to_string(index_of_data) + " second_arg: " + std::to_string(size_of_data) + " " + first_arg;
         participants_[slave_id]->write_possible_sequence(command_to_slave);
     }
-
-
-
 }
+
+void Slaves_Group::do_something_on_leave(int server_id) {}

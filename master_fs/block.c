@@ -13,19 +13,19 @@ int get_number_of_address_blocks(struct superblock *sb, int number_of_adresses){
 }
 
 
-unsigned int put_data_in_blocks(struct superblock *sb, char* data, int size_of_data){
+unsigned int put_data_in_blocks(struct superblock *sb, char* data, int size_of_data, FS_Handler *fs_handler){
     int added_block = 0;
     if (size_of_data % sb->number_of_bytes_in_block > 0)
         added_block = 1;
     int number_of_storage_blocks = size_of_data / sb->number_of_bytes_in_block + added_block;
 
     int number_of_address_blocks = get_number_of_address_blocks(sb, number_of_storage_blocks);
-    struct block* address_blocks = get_n_continuous_free_blocks(sb, number_of_address_blocks);
+    struct block* address_blocks = get_n_continuous_free_blocks(sb, number_of_address_blocks, fs_handler);
     for(int k = 0; k < number_of_storage_blocks; k++) {
         int i = k * sb->number_of_chars_in_index / sb->number_of_bytes_in_block;
         int j = k * sb->number_of_chars_in_index % sb->number_of_bytes_in_block;
         struct block* address_block = &address_blocks[i];
-        struct block* data_block = get_free_block(sb);
+        struct block* data_block = get_free_block(sb, fs_handler);
         put_index_in_address_block(sb, address_block->data + j, data_block->number_of_block);
     }
 
@@ -74,7 +74,7 @@ char* read_data_in_blocks(struct superblock *sb, struct block* address_blocks, i
 //valgrind --leak-check=full ./my_prog
 
 
-void free_data_in_blocks(struct superblock *sb, struct block* address_blocks, int size_of_data, short is_inodes){
+void free_data_in_blocks(struct superblock *sb, struct block* address_blocks, int size_of_data, short is_inodes, FS_Handler *fs_handler){
     int number_of_adress_blocks = get_number_of_address_blocks(sb, size_of_data);
     struct block** address_blocks_array = (struct block**) malloc(sizeof(void *) * number_of_adress_blocks);
 
@@ -87,11 +87,11 @@ void free_data_in_blocks(struct superblock *sb, struct block* address_blocks, in
             // directory's inodes are freed manually, because there's a need for recursively deleting all subdirectories
             // and such. But we still need to free the address blocks!
             struct block *data_block = get_block_by_index_in_address_block(sb, address_block->data + j);
-            free_block(sb, data_block);}
+            free_block(sb, data_block, fs_handler);}
         address_blocks_array[i] = address_block;
     }
 
     for(int i = 0; i < number_of_adress_blocks; i++)
-        free_block(sb, address_blocks_array[i]);
+        free_block(sb, address_blocks_array[i], fs_handler);
     free(address_blocks_array);
 }

@@ -32,6 +32,7 @@ void Server_Group::leave(server_participant_ptr server)
         if(it->second == server)
             participants_.erase(it);
     }
+    do_something_on_leave(server->id);
     //participants_.erase(std::remove(participants_.begin(), participants_.end(), server), participants_.end());
 }
 
