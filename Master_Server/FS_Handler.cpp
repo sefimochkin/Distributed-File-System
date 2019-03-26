@@ -8,12 +8,13 @@
 
 
 std::string FS_Handler::do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg){
-
+    printf("%d\n", client_id);
     auto it = clients_cur_directories.find(client_id);
 
     if(it == clients_cur_directories.end())
     {
-        clients_cur_directories[client_id] = &root;
+        inode * root_copy = root;
+        clients_cur_directories[client_id] = &root_copy;
     }
 
     int number_of_arguments = 0;

@@ -40,6 +40,9 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
         std::getline(iss, second_arg);
         if (second_arg.length() > 0)
             second_arg = second_arg.substr(1);
+        if (first_arg.find("second_arg:") == 0)
+            first_arg = "";
+
 
         //printf("got command: %s\n", command.c_str());
 
