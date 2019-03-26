@@ -52,7 +52,6 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
         }
 
         else {
-
             std::string answer = "command: print id: " + std::to_string(id) + " first_arg: _ second_arg: " + fs.do_command(id, command, first_arg, second_arg);
             printf("sending answer: %s\n", answer.c_str());
             participants_[id]->write_possible_sequence(answer);

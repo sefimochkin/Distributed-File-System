@@ -12,7 +12,7 @@
 #include <iostream>
 #include <cstdio>
 #include <sstream>
-
+#include <fstream>
 
 
 class Client_Server : public Server
@@ -41,9 +41,37 @@ public:
                 });
     }
 */
-    void input_message(const std::string &command, const std::string &first_arg, const std::string &second_arg){
-        std::string answer =  "command: " + command + " id: " + std::to_string(id) + " first_arg: " + first_arg + " second_arg: " + second_arg;
-        write_possible_sequence(answer);
+    void input_message(const std::string &command, std::string &first_arg, std::string &second_arg){
+        if (command.find("import") == 0) {
+            std::ifstream instream(first_arg);
+            std::stringstream buffer;
+            buffer << instream.rdbuf();
+            first_arg = second_arg;
+            second_arg = buffer.str();
+        }
+
+        if (command.find("export") == 0) {
+            waiting_on_export = true;
+            name_of_export_file = second_arg;
+            std::string answer =  "command: " + command + " id: " + std::to_string(id) + " first_arg: " + first_arg + " second_arg: " + second_arg;
+            write_possible_sequence(answer);
+        }
+
+        else if (command.find("read") == 0) {
+            std::string answer =  "command: " + command + " id: " + std::to_string(id) + " first_arg: " + first_arg + " second_arg: " + second_arg;
+            write_possible_sequence(answer);
+        }
+
+        else {
+            std::string answer = "command: " + command + " id: " + std::to_string(id) + " first_arg: " + first_arg +
+                                 " second_arg: " + second_arg;
+            write_possible_sequence(answer);
+            waiting_on_read.unlock();
+        }
+    }
+
+    void gain_control(){
+        waiting_on_read.lock();
     }
 
 
@@ -113,10 +141,28 @@ private:
         if (command.find(std::string("print")) == 0) {
             printf("%s\n", second_arg.c_str());
         }
-        else if (command.find(std::string("read_whole")) == 0){
-            printf("READ: %s\n", second_arg.c_str());
+        else if (command.find(std::string("read_whole")) == 0) {
+            if (waiting_on_export) {
+                std::ofstream out(name_of_export_file);
+                out << second_arg;
+                out.close();
+                waiting_on_export = false;
+                waiting_on_read.unlock();
+            }
+            else {
+                printf("READ: %s\n", second_arg.c_str());
+                waiting_on_read.unlock();
+            }
         }
+
     }
+
+
+private:
+    bool waiting_on_export = false;
+    std::string name_of_export_file = "";
+    std::mutex waiting_on_read;
+
 };
 
 

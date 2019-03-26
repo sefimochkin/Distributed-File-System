@@ -105,9 +105,9 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             short failed = 0;
             char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
             answer =  std::string(output);
-            if(failed != 1) {
-                free(output);
-            }
+            //if(failed != 1) {
+            //    free(output);
+            //}
 
         }
     }
@@ -121,7 +121,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
                           "mkdir $name$ to create directory named $name$\ntouch $name$ $file text$ to create a file "
                           "named $name$ with text of file $file text$\nrmdir $name$ to delete directory named $name$ "
                           "and all files in it\nrm $name$ to delete file named $name$ from directory\n"
-                          "read $name$ to print text of file named $name$\nimport $inner name$ $outer name$ to import "
+                          "read $name$ to print text of file named $name$\nimport $outer name$ $inner name$ to import "
                           "file named $outer name$ from computer's file system and save it as file named $inner name$ in "
                           "this file system\nexport $inner name$ $outer name$ to export file named $inner name$ into "
                           "computer's file system as a file named $outername$\nsave to save all changes made in "

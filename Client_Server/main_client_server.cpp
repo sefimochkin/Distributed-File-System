@@ -7,6 +7,7 @@
 #include <iostream>
 #include "Client_Server.h"
 #include <sstream>
+#include <fstream>
 #include "../utils/Server_Message.h"
 
 
@@ -40,6 +41,7 @@ int main(int argc, char* argv[])
             second_argument = second_argument.substr(1);
 
         while(command.find("finish") != 0){
+            client.gain_control();
             client.input_message(command, first_argument, second_argument);
 
             command = "";
