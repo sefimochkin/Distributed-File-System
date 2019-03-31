@@ -18,10 +18,10 @@ extern void shared_unlock_inode_mutex(FS_Handler * fs_handler, struct inode* ino
 extern short try_lock_inode_mutex(FS_Handler * fs_handler, struct inode* inode);
 
 
-void * get_memory_for_filesystem();
+void * get_memory_for_filesystem(int number_of_inodes, int number_of_blocks);
 
-struct inode * create_filesystem(char* filesystem, FS_Handler *fs_handler);
-struct inode * open_filesystem(char* file_system_name, char* filesystem, FS_Handler *fs_handler);
+struct inode * create_filesystem(char* filesystem, FS_Handler *fs_handler, int number_of_inodes, int number_of_blocks);
+struct inode * open_filesystem(char* file_system_name, char* filesystem, FS_Handler *fs_handler, int number_of_inodes, int number_of_blocks);
 char* save_filesystem(char* file_system_name, char* filesystem);
 char* close_filesystem(char* file_system_name, char* filesystem);
 

@@ -9,16 +9,16 @@
 #include "../utils/Network_utils.h"
 
 
-#define NUMBER_OF_INODES  1024
-#define NUMBER_OF_BLOCKS  16384
+//#define NUMBER_OF_INODES  1024
+//#define NUMBER_OF_BLOCKS  16384
 #define NUMBER_OF_BYTES_IN_BLOCK  32
 #define NUMBER_OF_CHARS_IN_INDEX  4
 #define MAGIC_SYMBOLS "MASTER OF DFS BY SERGEY EFIMOCHKIN"
 
-void * get_memory_for_filesystem(){
-    size_t size_of_filesystem = sizeof(struct superblock) + NUMBER_OF_INODES / 8 + NUMBER_OF_BLOCKS / 8
-                                + NUMBER_OF_INODES * sizeof(struct inode) + NUMBER_OF_BLOCKS * sizeof(struct block) +
-                                NUMBER_OF_BLOCKS*NUMBER_OF_BYTES_IN_BLOCK;
+void * get_memory_for_filesystem(int number_of_inodes, int number_of_blocks){
+    size_t size_of_filesystem = sizeof(struct superblock) + number_of_inodes / 8 + number_of_blocks / 8
+                                + number_of_inodes * sizeof(struct inode) + number_of_blocks * sizeof(struct block) +
+            number_of_blocks * NUMBER_OF_BYTES_IN_BLOCK;
     void *filesystem = malloc(size_of_filesystem);
     memset(filesystem, 0, size_of_filesystem);
 
@@ -26,37 +26,37 @@ void * get_memory_for_filesystem(){
 }
 
 
-struct inode * create_filesystem(char *filesystem, struct FS_Handler * fs_handler){
+struct inode * create_filesystem(char *filesystem, struct FS_Handler * fs_handler, int number_of_inodes, int number_of_blocks){
 
     struct superblock* sb = (struct superblock*) filesystem;
-    sb->number_of_inods = NUMBER_OF_INODES;
-    sb->number_of_blocks = NUMBER_OF_BLOCKS;
+    sb->number_of_inods = number_of_inodes;
+    sb->number_of_blocks = number_of_blocks;
     sb->number_of_bytes_in_block = NUMBER_OF_BYTES_IN_BLOCK;
     sb->number_of_chars_in_index = NUMBER_OF_CHARS_IN_INDEX;
-    sb->number_of_free_blocks = NUMBER_OF_BLOCKS;
-    sb->number_of_free_inods = NUMBER_OF_INODES;
+    sb->number_of_free_blocks = number_of_blocks;
+    sb->number_of_free_inods = number_of_inodes;
     sb->inods_bitmap =  (filesystem + sizeof(struct superblock));
-    sb->blocks_bitmap = (filesystem + sizeof(struct superblock) + NUMBER_OF_INODES / 8);
-    sb->inods_array = (struct inode*)(filesystem + sizeof(struct superblock) + NUMBER_OF_INODES / 8 + NUMBER_OF_BLOCKS / 8);
-    sb->blocks_array = (struct block*)(filesystem + sizeof(struct superblock) + NUMBER_OF_INODES / 8 + NUMBER_OF_BLOCKS / 8 +
-                                               NUMBER_OF_INODES * sizeof(struct inode));
-    sb->blocks_data_array = (filesystem + sizeof(struct superblock) + NUMBER_OF_INODES / 8 + NUMBER_OF_BLOCKS / 8 +
-                                                   NUMBER_OF_INODES * sizeof(struct inode) + NUMBER_OF_BLOCKS * sizeof(struct block));
+    sb->blocks_bitmap = (filesystem + sizeof(struct superblock) + number_of_inodes / 8);
+    sb->inods_array = (struct inode*)(filesystem + sizeof(struct superblock) + number_of_inodes / 8 + number_of_blocks / 8);
+    sb->blocks_array = (struct block*)(filesystem + sizeof(struct superblock) + number_of_inodes / 8 + number_of_blocks / 8 +
+            number_of_inodes * sizeof(struct inode));
+    sb->blocks_data_array = (filesystem + sizeof(struct superblock) + number_of_inodes / 8 + number_of_blocks / 8 +
+            number_of_inodes * sizeof(struct inode) + number_of_blocks * sizeof(struct block));
 
-    for (unsigned int i = 0; i < NUMBER_OF_INODES / 8; i++){
+    for (unsigned int i = 0; i < number_of_inodes / 8; i++){
         ((unsigned int *)sb->inods_bitmap)[i] = 0;
     }
 
-    for (unsigned int i = 0; i < NUMBER_OF_BLOCKS / 8; i++){
+    for (unsigned int i = 0; i < number_of_blocks / 8; i++){
         ((unsigned int *)sb->blocks_bitmap)[i] = 0;
     }
 
-    for(unsigned int i = 0; i < NUMBER_OF_INODES; i++){
+    for(unsigned int i = 0; i < number_of_inodes; i++){
         struct inode* inode = &sb->inods_array[i];
         inode->number_of_inode = i;
     }
 
-    for(unsigned int i = 0; i < NUMBER_OF_BLOCKS; i++){
+    for(unsigned int i = 0; i < number_of_blocks; i++){
         struct block* block = &sb->blocks_array[i];
         block->number_of_block = i;
         sb->blocks_array[i].data = sb->blocks_data_array + i * NUMBER_OF_BYTES_IN_BLOCK;
@@ -67,13 +67,13 @@ struct inode * create_filesystem(char *filesystem, struct FS_Handler * fs_handle
     return root;
 }
 
-struct inode * open_filesystem(char* file_system_name, char* filesystem, FS_Handler *fs_handler){
+struct inode * open_filesystem(char* file_system_name, char* filesystem, FS_Handler *fs_handler, int number_of_inodes, int number_of_blocks){
     FILE* file_with_filesystem = fopen(file_system_name, "r");
     char* magic_symbols;
 
     if(file_with_filesystem == NULL)
     {
-        struct inode* root = create_filesystem(filesystem, fs_handler);
+        struct inode* root = create_filesystem(filesystem, fs_handler, number_of_inodes, number_of_blocks);
         return root;
     }
 
@@ -87,22 +87,22 @@ struct inode * open_filesystem(char* file_system_name, char* filesystem, FS_Hand
 
     //restoring links
     sb->inods_bitmap =  (filesystem + sizeof(struct superblock));
-    sb->blocks_bitmap = (filesystem + sizeof(struct superblock) + NUMBER_OF_INODES / 8);
-    sb->inods_array = (struct inode*)(filesystem + sizeof(struct superblock) + NUMBER_OF_INODES / 8 + NUMBER_OF_BLOCKS / 8);
-    sb->blocks_array = (struct block*)(filesystem + sizeof(struct superblock) + NUMBER_OF_INODES / 8 + NUMBER_OF_BLOCKS / 8 +
-                                       NUMBER_OF_INODES * sizeof(struct inode));
-    sb->blocks_data_array = (filesystem + sizeof(struct superblock) + NUMBER_OF_INODES / 8 + NUMBER_OF_BLOCKS / 8 +
-                             NUMBER_OF_INODES * sizeof(struct inode) + NUMBER_OF_BLOCKS * sizeof(struct block));
+    sb->blocks_bitmap = (filesystem + sizeof(struct superblock) + number_of_inodes / 8);
+    sb->inods_array = (struct inode*)(filesystem + sizeof(struct superblock) + number_of_inodes / 8 + number_of_blocks / 8);
+    sb->blocks_array = (struct block*)(filesystem + sizeof(struct superblock) + number_of_inodes / 8 + number_of_blocks / 8 +
+            number_of_inodes * sizeof(struct inode));
+    sb->blocks_data_array = (filesystem + sizeof(struct superblock) + number_of_inodes / 8 + number_of_blocks / 8 +
+            number_of_inodes * sizeof(struct inode) + number_of_blocks * sizeof(struct block));
 
 
-    fread(sb->inods_bitmap, sizeof(char), NUMBER_OF_INODES / 8, file_with_filesystem);
-    fread(sb->blocks_bitmap, sizeof(char), NUMBER_OF_BLOCKS / 8, file_with_filesystem);
-    fread(sb->inods_array, sizeof(struct inode), NUMBER_OF_INODES, file_with_filesystem);
-    fread(sb->blocks_array, sizeof(struct block), NUMBER_OF_BLOCKS, file_with_filesystem);
-    fread(sb->blocks_data_array, sizeof(char), NUMBER_OF_BLOCKS * NUMBER_OF_BYTES_IN_BLOCK, file_with_filesystem);
+    fread(sb->inods_bitmap, sizeof(char), number_of_inodes / 8, file_with_filesystem);
+    fread(sb->blocks_bitmap, sizeof(char), number_of_blocks / 8, file_with_filesystem);
+    fread(sb->inods_array, sizeof(struct inode), number_of_inodes, file_with_filesystem);
+    fread(sb->blocks_array, sizeof(struct block), number_of_blocks, file_with_filesystem);
+    fread(sb->blocks_data_array, sizeof(char), number_of_blocks * NUMBER_OF_BYTES_IN_BLOCK, file_with_filesystem);
 
     //restoring links
-    for(unsigned int j = 0; j < NUMBER_OF_BLOCKS; j++){
+    for(unsigned int j = 0; j < number_of_blocks; j++){
         sb->blocks_array[j].data = sb->blocks_data_array + j * NUMBER_OF_BYTES_IN_BLOCK;
     }
 
@@ -128,11 +128,11 @@ char* save_filesystem(char* file_system_name, char* filesystem){
     fwrite(MAGIC_SYMBOLS, sizeof(char), strlen(MAGIC_SYMBOLS), file_with_filesystem);
     struct superblock* sb = (struct superblock *) filesystem;
     fwrite(sb, sizeof(struct superblock), 1 , file_with_filesystem);
-    fwrite(sb->inods_bitmap, sizeof(char), NUMBER_OF_INODES / 8, file_with_filesystem);
-    fwrite(sb->blocks_bitmap, sizeof(char), NUMBER_OF_BLOCKS / 8, file_with_filesystem);
-    fwrite(sb->inods_array, sizeof(struct inode), NUMBER_OF_INODES, file_with_filesystem);
-    fwrite(sb->blocks_array, sizeof(struct block), NUMBER_OF_BLOCKS, file_with_filesystem);
-    fwrite(sb->blocks_data_array, sizeof(char), NUMBER_OF_BLOCKS * NUMBER_OF_BYTES_IN_BLOCK, file_with_filesystem);
+    fwrite(sb->inods_bitmap, sizeof(char), sb->number_of_inods / 8, file_with_filesystem);
+    fwrite(sb->blocks_bitmap, sizeof(char), sb->number_of_blocks / 8, file_with_filesystem);
+    fwrite(sb->inods_array, sizeof(struct inode), sb->number_of_inods, file_with_filesystem);
+    fwrite(sb->blocks_array, sizeof(struct block), sb->number_of_blocks, file_with_filesystem);
+    fwrite(sb->blocks_data_array, sizeof(char), sb->number_of_blocks * NUMBER_OF_BYTES_IN_BLOCK, file_with_filesystem);
 
     fclose(file_with_filesystem);
 

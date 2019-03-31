@@ -14,11 +14,12 @@ extern "C" {
 class Slave_FS_Handler {
 public:
 
-    Slave_FS_Handler(){
+    Slave_FS_Handler(int number_of_blocks_, int number_of_free_blocks_){
+        number_of_blocks = number_of_blocks_;
 
-        filesystem = get_memory_for_filesystem();
+        filesystem = get_memory_for_filesystem(number_of_blocks);
 
-        open_filesystem(name, (char*)filesystem);
+        open_filesystem(name, (char*)filesystem, number_of_blocks);
 
         sb = (struct superblock *) filesystem;
     }
@@ -27,10 +28,15 @@ public:
     std::string read_data_blocks(unsigned int index_of_blocks, int size_of_data);
     void free_data_blocks(unsigned int index_of_blocks, int size_of_data);
 
+    int get_size_of_data_in_FS_blocks(int size_of_data){
+        return get_size_of_data_in_blocks(sb, size_of_data);
+    }
+
 private:
     char * name = const_cast<char *>("./slave_fs_files");
     void* filesystem;
     struct superblock* sb;
+    int number_of_blocks;
 
 };
 

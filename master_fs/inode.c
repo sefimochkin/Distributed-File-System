@@ -338,5 +338,9 @@ int get_size_of_data_in_blocks(struct superblock *sb, int size_of_data){
     return size;
 }
 
+int get_approximate_size_of_blocks(struct superblock *sb, int n_of_blocks){
+    return sb->number_of_bytes_in_block * n_of_blocks;
+}
+
 
 

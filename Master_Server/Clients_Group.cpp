@@ -56,7 +56,6 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
             printf("sending answer: %s\n", answer.c_str());
             participants_[id]->write_possible_sequence(answer);
         }
-
     }
 
 void Clients_Group::send_command(std::string message) {

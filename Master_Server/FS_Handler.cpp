@@ -39,8 +39,12 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
-            if (file_blocks_left )
-            answer = mkdirf(sb, first_arg.c_str(), *clients_cur_directories[client_id], this);
+            bool error = false;
+            answer = check_directory(first_arg.length(), error);
+            if (!error) {
+                add_file(first_arg.length());
+                answer = mkdirf(sb, first_arg.c_str(), *clients_cur_directories[client_id], this);
+            }
         }
     }
 
@@ -48,6 +52,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
+            rm_file(first_arg.length());
             answer = rm_dir(sb, first_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
         }
     }
@@ -56,7 +61,13 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments < 3)
             answer =  std::string("Not sufficient arguments!");
         else {
-            answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
+            bool error = false;
+            answer = check_file(first_arg.length(), second_arg.length(), error);
+            if (!error) {
+                add_file(first_arg.length());
+                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this,
+                               client_id);
+            }
         }
     }
 
@@ -64,6 +75,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
+            rm_file(first_arg.length());
             answer = rm(sb, first_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
         }
     }
@@ -75,9 +87,6 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             short failed = 0;
             char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
             answer =  std::string(output);
-            //if(failed != 1) {
-            //    free(output);
-            //}
 
         }
     }
@@ -94,7 +103,13 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments < 3)
             answer =  std::string("Not sufficient arguments!");
         else {
-            answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
+            bool error = false;
+            answer = check_file(first_arg.length(), second_arg.length(), error);
+            if (!error) {
+                add_file(first_arg.length());
+                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this,
+                               client_id);
+            }
         }
     }
 
@@ -105,15 +120,15 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             short failed = 0;
             char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
             answer =  std::string(output);
-            //if(failed != 1) {
-            //    free(output);
-            //}
-
         }
     }
 
     else if (command.find(std::string("save")) == 0){
         answer = save_filesystem(name, (char *) filesystem);
+    }
+
+    else if (command.find(std::string("fs_info")) == 0){
+        answer = get_fs_info();
     }
 
     else if (command.find(std::string("help")) == 0){

@@ -27,6 +27,10 @@ public:
         fs.add_pointer_to_slaves_group(other_group);
     }
 
+    std::string get_fs_info(){
+        return std::string("Should not be called");
+    };
+
 private:
     void parse_command_and_do_something(std::string message);
     FS_Handler fs;

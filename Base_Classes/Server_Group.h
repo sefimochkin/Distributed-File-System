@@ -38,6 +38,8 @@ public:
 
     virtual void do_something_on_leave(int server_id) = 0;
 
+    virtual std::string get_fs_info() = 0;
+
     void add_pointer_to_other_group(Server_Group *other_group){
         other_group_ = other_group;
     }

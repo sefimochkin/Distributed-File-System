@@ -23,11 +23,11 @@ class Slave_Server : public Server
 public:
     Slave_Server(boost::asio::io_service& io_service,
                 tcp::resolver::iterator endpoint_iterator):
-            Server(io_service, endpoint_iterator)
+            Server(io_service, endpoint_iterator), fs(Slave_FS_Handler(number_of_blocks, number_of_free_blocks))
     {
-        parse_settings();
-        initial_reserve_memory();
-        reserved_memory = 0;
+        //parse_settings();
+        //initial_reserve_memory();
+        //reserved_memory = 0;
 
         write_possible_sequence("slave");
     }
@@ -42,10 +42,9 @@ private:
         if (message.find(std::string("ping")) == 0) {
             write_possible_sequence("received ping back");
         }
-        else if (message.find(std::string("overall size")) == 0) {
-            char ans[20];
-            snprintf(ans, 20, "overall size: %d", all_memory);
-            write_possible_sequence(ans);
+        else if (message.find(std::string("fs_info")) == 0) {
+            std::string answer = "fs_info_back: n_blocks: " + std::to_string(number_of_blocks) + ", free_blocks: " + std::to_string(number_of_free_blocks);
+            write_possible_sequence(answer);
         }
         else if (message.find(std::string("id")) == 0){
             sscanf(message.c_str(), "id: %d", &id);
@@ -92,7 +91,8 @@ private:
         if (command.find(std::string("to_store")) == 0){
             printf("storing: %s\n", second_arg.c_str());
             int index = fs.store_data_blocks(second_arg);
-            std::string answer = "command: stored_whole id: " + std::to_string(client_id) + " first_arg: " + first_arg + " second_arg: " + std::to_string(index);
+            int size_of_file_in_blocks = fs.get_size_of_data_in_FS_blocks(second_arg.length());
+            std::string answer = "command: stored_whole id: " + std::to_string(client_id) + " first_arg: " + first_arg + " second_arg: " + std::to_string(index) + " " + std::to_string(size_of_file_in_blocks);
             write_possible_sequence(answer);
         }
 
@@ -128,6 +128,8 @@ private:
         }
     }
 
+
+    /*
     void parse_settings(){
         std::ifstream infile("../settings/slave_server_config.txt");
         char config_name[30];
@@ -138,21 +140,12 @@ private:
                 all_memory = value;
         }
     }
-
-    void initial_reserve_memory(){}
-
-    int get_size_of_free_memory(){
-        return all_memory - reserved_memory;
-    }
-
-    void reserve_memory(int number_of_bytes);
-    void free_memory(int number_of_bytes);
-
+    */
 
 
 private:
-    int all_memory;
-    int reserved_memory;
+    int number_of_blocks = 16384;
+    int number_of_free_blocks = 16384;
     Slave_FS_Handler fs;
 };
 

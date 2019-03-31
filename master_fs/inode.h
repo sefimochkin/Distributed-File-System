@@ -51,5 +51,6 @@ struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* 
 short check_doubling_name(struct superblock *sb, char*name, struct inode* directory);
 
 int get_size_of_data_in_blocks(struct superblock *sb, int size_of_data);
+int get_approximate_size_of_blocks(struct superblock *sb, int n_of_blocks);
 
 #endif //FS_INODE_H

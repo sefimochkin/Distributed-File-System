@@ -13,8 +13,8 @@
 #include <boost/thread/shared_mutex.hpp>
 
 struct slave_info{
-    slave_info(server_participant_ptr owner_, int overall_memory_, int reserved_memory_, int id_) :
-            owner(owner_), overall_memory(overall_memory_), reserved_memory(reserved_memory_), id(id_){}
+    slave_info(server_participant_ptr owner_, int n_blocks_, int free_blocks_, int id_) :
+            owner(owner_), n_blocks(n_blocks_), free_blocks(free_blocks_), id(id_), counter_mutex(new boost::mutex()){}
 
     server_participant_ptr owner;
 
@@ -24,10 +24,12 @@ struct slave_info{
     bool is_main = false;
     bool is_backup = false;
 
-    int overall_memory;
-    int reserved_memory;
+    int n_blocks;
+    int free_blocks;
 
     int id;
+
+    std::shared_ptr<boost::mutex> counter_mutex;
 };
 
 struct file_bindings{
@@ -38,6 +40,7 @@ struct file_bindings{
     int storage_slave_id;
     int index_of_file = -1;
     int size_of_data;
+    int size_of_file_in_blocks;
     std::shared_ptr<boost::shared_mutex> rw_mtx;
 };
 
@@ -45,6 +48,8 @@ struct file_bindings{
 class Slaves_Group : public Server_Group
 {
 public:
+
+  Slaves_Group() : counter_mutex(new boost::mutex()){}
 
   void parse_command_and_do_something(std::string message);
 
@@ -54,12 +59,17 @@ public:
 
   void do_something_on_leave(int server_id);
 
+  std::string get_fs_info();
+
   ~Slaves_Group() = default;
 
 private:
     std::unordered_map<std::string, file_bindings> files;
-    int sum_of_overall_memory = 0;
+    int n_of_all_blocks = 0;
+    int all_free_blocks = 0;
     std::unordered_map<server_participant_ptr, slave_info> slaves_info;
+
+    std::shared_ptr<boost::mutex> counter_mutex;
 };
 
 #endif //DFS_SERVER_GROUP_H
