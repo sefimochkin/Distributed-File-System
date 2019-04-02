@@ -7,7 +7,7 @@
 #include <algorithm>
 
 
-std::string FS_Handler::do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg){
+std::string FS_Handler::do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg, short &error){
     printf("%d\n", client_id);
     auto it = clients_cur_directories.find(client_id);
 
@@ -84,10 +84,11 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
-            short failed = 0;
-            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
-            answer =  std::string(output);
-
+            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &error, this, client_id);
+            if (error == 0)
+                answer =  std::string(output);
+            else
+                answer = std::string("Can't find a file with this name!");
         }
     }
 
@@ -120,6 +121,10 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             short failed = 0;
             char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
             answer =  std::string(output);
+            //if(failed != 1) {
+            //    free(output);
+            //}
+
         }
     }
 
@@ -160,15 +165,15 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
 }
 
 
-extern "C" void store_data_in_slave_wrapper(FS_Handler * fs_handler, int id,  char *name, char *data) {
-    fs_handler->store_data_in_slave(id, name, data);
+extern "C" void store_data_in_slave_wrapper(FS_Handler * fs_handler, int id,  int inode_id, char *data) {
+    fs_handler->store_data_in_slave(id, inode_id, data);
 }
 
-extern "C" void read_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *name) {
-    fs_handler->read_data_in_slave(id, name);
+extern "C" void read_data_in_slave_wrapper(FS_Handler * fs_handler, int id, int inode_id) {
+    fs_handler->read_data_in_slave(id, inode_id);
 }
-extern "C" void free_data_in_slave_wrapper(FS_Handler * fs_handler, int id, char *name) {
-    fs_handler->free_data_in_slave(id, name);
+extern "C" void free_data_in_slave_wrapper(FS_Handler * fs_handler, int id, int inode_id) {
+    fs_handler->free_data_in_slave(id, inode_id);
 }
 
 extern "C" void lock_fs_mutex(FS_Handler * fs_handler) {

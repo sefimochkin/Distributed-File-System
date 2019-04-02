@@ -241,7 +241,7 @@ char* read_file(struct superblock *sb, const char* name, struct inode* directory
         }
         shared_lock_inode_mutex(fs_handler, inode);
 
-        open_file(fs_handler, id, (char *) name);
+        open_file(fs_handler, id, inode->number_of_inode);
 
         shared_unlock_inode_mutex(fs_handler, inode); // can it break because of asynchronous communication with slave?
                                                         // maybe it's better to unlock upon receiving the answer from slave?

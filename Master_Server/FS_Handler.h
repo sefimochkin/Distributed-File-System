@@ -33,26 +33,25 @@ public:
         }
     }
 
-    std::string do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg);
+    std::string do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg, short &error);
 
     void add_pointer_to_slaves_group(Server_Group *slaves_group){
         slaves_group_ = slaves_group;
     }
 
-    void store_data_in_slave(int id,  char *name, char *data) {
+    void store_data_in_slave(int id, int inode_id, char *data) {
         std::string
-                message = "command: to_store id: " + std::to_string(id) + " first_arg: " + name + " second_arg: " + data;
+                message = "command: to_store id: " + std::to_string(id) + " first_arg: " + std::to_string(inode_id) + " second_arg: " + data;
         slaves_group_->send_command(message);
     }
-    void read_data_in_slave(int id, char *name) {
+    void read_data_in_slave(int id, int inode_id) {
         std::string
-                message = "command: to_read id: " + std::to_string(id) + " first_arg: " + name + " second_arg: ";
+                message = "command: to_read id: " + std::to_string(id) + " first_arg: " + std::to_string(inode_id) + " second_arg: ";
         slaves_group_->send_command(message);
     }
-    void free_data_in_slave(int id, char *name) {
+    void free_data_in_slave(int id, int inode_id) {
         std::string
-                message = "command: to_free id: " + std::to_string(id) + " first_arg: " + name + " second_arg: ";
-        free(name);
+                message = "command: to_free id: " + std::to_string(id) + " first_arg: " + std::to_string(inode_id) + " second_arg: ";
         slaves_group_->send_command(message);
     }
 
@@ -183,7 +182,7 @@ private:
     int number_of_free_name_blocks = 16384;
 
     int number_of_inodes = 1024;
-    int number_of_free_inodes = 1;
+    int number_of_free_inodes = 1024;
 
 };
 

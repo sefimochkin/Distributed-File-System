@@ -12,6 +12,9 @@
 #include "Clients_Group.h"
 #include <boost/thread/shared_mutex.hpp>
 
+#define NUMBER_OF_BYTES_IN_BLOCK  32   //sorry for this, but I don't have enough time to clean this up, so it's up to you
+#define NUMBER_OF_CHARS_IN_INDEX  4
+
 struct slave_info{
     slave_info(server_participant_ptr owner_, int n_blocks_, int free_blocks_, int id_) :
             owner(owner_), n_blocks(n_blocks_), free_blocks(free_blocks_), id(id_), counter_mutex(new boost::mutex()){}
@@ -30,6 +33,16 @@ struct slave_info{
     int id;
 
     std::shared_ptr<boost::mutex> counter_mutex;
+
+    bool operator < (const slave_info& other_slave_info) const
+    {
+        counter_mutex->lock();
+        other_slave_info.counter_mutex->lock();
+        bool ans = free_blocks < other_slave_info.free_blocks;
+        counter_mutex->unlock();
+        other_slave_info.counter_mutex->unlock();
+        return ans;
+    }
 };
 
 struct file_bindings{
@@ -42,6 +55,7 @@ struct file_bindings{
     int size_of_data;
     int size_of_file_in_blocks;
     std::shared_ptr<boost::shared_mutex> rw_mtx;
+    std::shared_ptr<file_bindings> next_part = nullptr;
 };
 
 
@@ -61,10 +75,12 @@ public:
 
   std::string get_fs_info();
 
+  int count_max_size_of_data_by_number_of_blocks(int size_of_data);
+
   ~Slaves_Group() = default;
 
 private:
-    std::unordered_map<std::string, file_bindings> files;
+    std::unordered_map<int, file_bindings> files;
     int n_of_all_blocks = 0;
     int all_free_blocks = 0;
     std::unordered_map<server_participant_ptr, slave_info> slaves_info;

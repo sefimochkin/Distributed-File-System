@@ -16,7 +16,7 @@ struct inode * create_file(struct superblock *sb, char* name, char* file, int si
     inode->is_directory = 0;
     inode->index_of_blocks_array_of_name = put_data_in_blocks(sb, name, size_of_name, fs_handler);
     //inode->index_of_blocks_array_of_file = put_data_in_blocks(sb, file, size_of_file);
-    store_data_in_slave_wrapper(fs_handler, id, name, file);
+    store_data_in_slave_wrapper(fs_handler, id, inode->number_of_inode, file);
 
     inode->size_of_name_in_chars = size_of_name;
     inode->size_of_file_in_chars = size_of_file;
@@ -217,8 +217,8 @@ char* get_file_name(struct superblock *sb, struct inode* inode){
 }
 
 
-void open_file(FS_Handler *fs_handler, int id, char* name){
-    read_data_in_slave_wrapper(fs_handler, id, name);
+void open_file(FS_Handler *fs_handler, int id, int inode_id){
+    read_data_in_slave_wrapper(fs_handler, id, inode_id);
 }
 
 

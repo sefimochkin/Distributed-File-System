@@ -155,6 +155,14 @@ private:
             }
         }
 
+        else if (command.find("error_print") == 0){
+            if (second_arg.find("Can't find a file with this name!") == 0) {
+                printf("%s\n", second_arg.c_str());
+                waiting_on_read.unlock();
+            }
+
+        }
+
     }
 
 
