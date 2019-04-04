@@ -6,8 +6,21 @@
 //#include "../master_fs/FileSystem.h"
 #include <algorithm>
 
+FS_Handler::FS_Handler(): fs_mutex(new std::mutex()), counter_mutex(new std::mutex()){
 
-std::string FS_Handler::do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg, short &error){
+    filesystem = get_memory_for_filesystem(number_of_inodes, number_of_name_blocks);
+
+    root = open_filesystem(name, (char*)filesystem, this, number_of_inodes, number_of_name_blocks);
+
+    sb = (struct superblock *) filesystem;
+
+    for (int i = 0; i < 1024; i++){
+        inode *cur_inode = &(sb->inods_array[i]);
+        inode_locks.emplace(cur_inode, new boost::shared_mutex());
+    }
+}
+
+std::string FS_Handler::do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg){
     printf("%d\n", client_id);
     auto it = clients_cur_directories.find(client_id);
 
@@ -62,7 +75,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not sufficient arguments!");
         else {
             bool error = false;
-            answer = check_file(first_arg.length(), second_arg.length(), error);
+            answer = check_new_file(first_arg.length(), second_arg.length(), error);
             if (!error) {
                 add_file(first_arg.length());
                 answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this,
@@ -84,11 +97,10 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not sufficient arguments!");
         else {
-            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &error, this, client_id);
-            if (error == 0)
-                answer =  std::string(output);
-            else
-                answer = std::string("Can't find a file with this name!");
+            short failed = 0;
+            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
+            answer =  std::string(output);
+
         }
     }
 
@@ -105,7 +117,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not sufficient arguments!");
         else {
             bool error = false;
-            answer = check_file(first_arg.length(), second_arg.length(), error);
+            answer = check_new_file(first_arg.length(), second_arg.length(), error);
             if (!error) {
                 add_file(first_arg.length());
                 answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this,
@@ -132,7 +144,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         answer = save_filesystem(name, (char *) filesystem);
     }
 
-    else if (command.find(std::string("info")) == 0){
+    else if (command.find(std::string("fs_info")) == 0){
         answer = get_fs_info();
     }
 
@@ -163,6 +175,133 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
     return answer;
 
 }
+
+void FS_Handler::add_pointer_to_slaves_group(Server_Group *slaves_group){
+    slaves_group_ = slaves_group;
+}
+
+void FS_Handler::store_data_in_slave(int id,  int inode_id, char *data) {
+    std::string
+            message = "command: to_store id: " + std::to_string(id) + " first_arg: " + std::to_string(inode_id) + " second_arg: " + data;
+    slaves_group_->send_command(message);
+}
+
+void FS_Handler::read_data_in_slave(int id, int inode_id) {
+    std::string
+            message = "command: to_read id: " + std::to_string(id) + " first_arg: " + std::to_string(inode_id) + " second_arg: ";
+    slaves_group_->send_command(message);
+}
+
+void FS_Handler::free_data_in_slave(int id, int inode_id) {
+    std::string
+            message = "command: to_free id: " + std::to_string(id) + " first_arg: " + std::to_string(inode_id) + " second_arg: ";
+    free(name);
+    slaves_group_->send_command(message);
+}
+
+int FS_Handler::get_size_of_data_in_FS_blocks(int size_of_data){
+    return get_size_of_data_in_blocks(sb, size_of_data);
+}
+
+std::string FS_Handler::get_approximate_size_of_fs_blocks(int n_blocks){
+    int size = sizeof(char) * get_approximate_size_of_blocks(sb, n_blocks);
+
+    std::string answer;
+    if (size > 1024)
+        answer = std::to_string(size / 1024) + "kb" + std::to_string(size % 1024) + "b";
+    else
+        answer = std::to_string(size % 1024) + "b";
+
+    return answer;
+}
+
+std::string FS_Handler::get_fs_info(){
+    int n_blocks, free_blocks;
+    std::string fs_info = slaves_group_->get_fs_info();
+    sscanf(fs_info.c_str(), "n_blocks: %d, free_blocks: %d", &n_blocks, &free_blocks);
+    std::string answer = "files left: " + std::to_string(number_of_free_inodes) + "/" + std::to_string(number_of_inodes) + ", data_memory left: " + get_approximate_size_of_fs_blocks(free_blocks) + "/" + get_approximate_size_of_fs_blocks(n_blocks) + ", file_name_memory left: " + get_approximate_size_of_fs_blocks(number_of_free_name_blocks) + "/" + get_approximate_size_of_fs_blocks(number_of_name_blocks);
+    return answer;
+}
+
+void FS_Handler::client_leave(int client_id){
+    struct inode** current_directory = clients_cur_directories[client_id];
+    while (&(sb->inods_array[(*current_directory)->index_of_owner_inode]) != sb->inods_array){ //going up to the root
+        inode_locks[*current_directory]->unlock_shared();
+        *current_directory = &(sb->inods_array[(*current_directory)->index_of_owner_inode]);
+    }
+}
+
+std::string FS_Handler::check_file(bool &error){
+    std::string answer = "";
+    counter_mutex->lock();
+    if (number_of_free_inodes == 0){
+        counter_mutex->unlock();
+        answer = "There are no file nodes left! Delete something to create something new!";
+        error = true;
+    } else
+        counter_mutex->unlock();
+    return answer;
+}
+
+std::string FS_Handler::check_name(int size_of_data, bool &error){
+    std::string answer = "";
+    counter_mutex->lock();
+    if (get_size_of_data_in_FS_blocks(size_of_data) > number_of_free_name_blocks){
+        counter_mutex->unlock();
+        answer = "There are no name blocks left! Delete something to create something new!";
+        error = true;
+    } else
+        counter_mutex->unlock();
+    return answer;
+}
+
+std::string FS_Handler::check_data(int size_of_data, bool &error){
+    std::string answer = "";
+    int n_blocks, free_blocks;
+    std::string fs_info = slaves_group_->get_fs_info();
+    sscanf(fs_info.c_str(), "n_blocks: %d, free_blocks: %d", &n_blocks, &free_blocks);
+    counter_mutex->lock();
+    if (get_size_of_data_in_FS_blocks(size_of_data) > free_blocks){
+        counter_mutex->unlock();
+        answer = "There are no data blocks left! Delete something to create something new!";
+        error = true;
+    } else
+        counter_mutex->unlock();
+    return answer;
+}
+
+std::string FS_Handler::check_directory(int size_of_name, bool &error){
+    std::string answer = check_file(error);
+    if (!error)
+        answer = check_name(size_of_name, error);
+    return answer;
+}
+
+std::string FS_Handler::check_new_file(int size_of_name, int size_of_data, bool &error){
+    std::string answer = check_file(error);
+    if (!error) {
+        answer = check_name(size_of_name, error);
+        if (!error)
+            answer = check_data(size_of_data, error);
+    }
+    return answer;
+}
+
+
+void FS_Handler::add_file(int size_of_name){
+    counter_mutex->lock();
+    number_of_free_inodes--;
+    number_of_free_name_blocks -= get_size_of_data_in_FS_blocks(size_of_name);
+    counter_mutex->unlock();
+}
+
+void FS_Handler::rm_file(int size_of_name){
+    counter_mutex->lock();
+    number_of_free_inodes++;
+    number_of_free_name_blocks += get_size_of_data_in_FS_blocks(size_of_name);
+    counter_mutex->unlock();
+}
+
 
 
 extern "C" void store_data_in_slave_wrapper(FS_Handler * fs_handler, int id,  int inode_id, char *data) {

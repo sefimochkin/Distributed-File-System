@@ -97,6 +97,7 @@ struct block* get_n_continuous_free_blocks(struct superblock *sb, int number_of_
 
 
 void free_inode(struct superblock *sb, struct inode* inode, FS_Handler *fs_handler, int id){
+
     free_data_in_blocks(sb, &(sb->blocks_array[inode->index_of_blocks_array_of_name]), inode->size_of_name_in_chars, inode->is_directory, fs_handler);
     if(inode->is_directory)
         free_data_in_blocks(sb, &(sb->blocks_array[inode->index_of_blocks_array_of_inodes]), inode->number_of_files_in_directory, inode->is_directory, fs_handler);

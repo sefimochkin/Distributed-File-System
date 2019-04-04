@@ -27,12 +27,6 @@ int main(int argc, char* argv[])
 
         std::thread t([&io_service](){ io_service.run(); });
 
-        /*
-         *
-        std::string command = "touch";
-        std::string first_argument = "bla";
-        std::string second_argument = "1234567890123456789012345678901234567890";
-         * */
         std::string command;
         std::string first_argument;
         std::string second_argument;

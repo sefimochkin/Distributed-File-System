@@ -52,14 +52,7 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
         }
 
         else {
-            short error = 0;
-            std::string fs_answer = fs.do_command(id, command, first_arg, second_arg, error);
-            std::string answer;
-            if (error == 0)
-                answer = "command: print id: " + std::to_string(id) + " first_arg: _ second_arg: " + fs_answer;
-            else
-                answer = "command: error_print id: " + std::to_string(id) + " first_arg: _ second_arg: " + fs_answer;
-
+            std::string answer = "command: print id: " + std::to_string(id) + " first_arg: _ second_arg: " + fs.do_command(id, command, first_arg, second_arg);
             printf("sending answer: %s\n", answer.c_str());
             participants_[id]->write_possible_sequence(answer);
         }
@@ -105,6 +98,15 @@ void Clients_Group::send_command(std::string message) {
     }
     //(*winner).write_possible_sequence(message);
 }
+
+void Clients_Group::add_pointer_to_other_group(Server_Group *other_group){
+    other_group_ = other_group;
+    fs.add_pointer_to_slaves_group(other_group);
+}
+
+std::string Clients_Group::get_fs_info(){
+    return std::string("Should not be called");
+};
 
 void Clients_Group::do_something_on_leave(int server_id) {
     fs.client_leave(server_id);

@@ -22,14 +22,9 @@ public:
 
     ~Clients_Group() = default;
 
-    void add_pointer_to_other_group(Server_Group *other_group){
-        other_group_ = other_group;
-        fs.add_pointer_to_slaves_group(other_group);
-    }
+    void add_pointer_to_other_group(Server_Group *other_group);
 
-    std::string get_fs_info(){
-        return std::string("Should not be called");
-    };
+    std::string get_fs_info();
 
 private:
     void parse_command_and_do_something(std::string message);

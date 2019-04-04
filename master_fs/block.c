@@ -6,11 +6,9 @@
 
 int get_number_of_address_blocks(struct superblock *sb, int number_of_adresses){
     int added_block = 0;
-    if (number_of_adresses < sb->number_of_bytes_in_block)
+    if (number_of_adresses * sb->number_of_chars_in_index % sb->number_of_bytes_in_block > 0)
         added_block = 1;
-    else if ((number_of_adresses / sb->number_of_bytes_in_block) % (sb->number_of_bytes_in_block / sb->number_of_chars_in_index) > 0)
-        added_block = 1;
-    int number_of_storage_blocks = (number_of_adresses / sb->number_of_bytes_in_block) / (sb->number_of_bytes_in_block / sb->number_of_chars_in_index) + added_block;
+    int number_of_storage_blocks = number_of_adresses * sb->number_of_chars_in_index / sb->number_of_bytes_in_block + added_block;
     return number_of_storage_blocks;
 }
 

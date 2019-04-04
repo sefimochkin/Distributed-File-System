@@ -5,45 +5,46 @@
 #include "Master_Server.h"
 #include <random>
 
-/*
-std::random_device rd;     // only used once to initialise (seed) engine
-std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
-void send_messages_from_queue(server_participant_ptr server, Server_Message message){
+Master_Server::Master_Server(boost::asio::io_service& io_service,const tcp::endpoint& endpoint)
+    : acceptor_(io_service, endpoint),
+    socket_(io_service), ping_timer(io_service, boost::posix_time::seconds(ping_period)),
+    strand(io_service), io_service_(io_service)
+    {
+        boost::asio::io_service::work work(io_service);
+        clients_group.add_pointer_to_other_group(&slaves_group);
+        slaves_group.add_pointer_to_other_group(&clients_group);
 
-        server->deliver(message);
-}*/
-/*
-void receive_messages(std::vector<server_participant_ptr> slave_servers, boost::asio::io_service& io_service){
-    if (!slave_servers.empty()) {
-        std::uniform_int_distribution<int> uni(0, slave_servers.size() - 1);
-        int random_slave = uni(rng);
+        for (std::size_t i = 0; i < number_of_worker_threads; ++i)
+            worker_threads.create_thread(boost::bind(&boost::asio::io_service::run, &io_service));
+        ping_timer.async_wait(strand.wrap(boost::bind(&Master_Server::ping, this)));
+        do_accept();
 
-        //auto it(slave_servers.begin());
-        //advance(it, random_slave);
-        Server_Message answer = (*slave_servers[random_slave]).get_message();
-        printf("%s", answer.body());
-    }
-    //receive_messages(slave_servers);
-    //io_service.post(boost::bind(&receive_messages, slave_servers, io_service));
-
-
-}*/
-
-/*
-void send_messages_from_queue(std::queue<Server_And_Message> *output_queue, std::mutex *output_queue_mutex){
-    bool continue_working = true;
-    if (!output_queue->empty()){
-
-        output_queue_mutex->lock();
-        Server_And_Message package = output_queue->front();
-        output_queue->pop();
-        output_queue_mutex->unlock();
-
-        package.server->deliver(package.message);
-        if (strcmp(package.message.data(), "stop") != 0)
-            continue_working = false;
-    }
-    if (continue_working)
-        send_messages_from_queue(output_queue, output_queue_mutex);
 }
- */
+
+void Master_Server::ping(){
+    slaves_group.ping();
+    clients_group.ping();
+
+    printf("Slave Server#: %d\n", slaves_group.len());
+
+    ping_timer.expires_at(ping_timer.expires_at() + boost::posix_time::seconds(ping_period));
+    ping_timer.async_wait(strand.wrap(boost::bind(&Master_Server::ping, this)));
+}
+
+void Master_Server::do_accept(){
+    acceptor_.async_accept(socket_,
+                           [this](boost::system::error_code ec)
+                           {
+                               if (!ec)
+                               {
+                                   printf("connected!");
+                                   std::make_shared<Initializing_ISS>(std::move(socket_), slaves_group, clients_group)->start();
+                               }
+                               else{
+
+                                   printf("%s", ec.message().c_str());
+                               }
+
+                               do_accept();
+                           });
+}
