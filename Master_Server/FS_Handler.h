@@ -128,6 +128,7 @@ private:
         int n_blocks, free_blocks;
         std::string fs_info = slaves_group_->get_fs_info();
         sscanf(fs_info.c_str(), "n_blocks: %d, free_blocks: %d", &n_blocks, &free_blocks);
+        int tmp = get_size_of_data_in_FS_blocks(size_of_data);
         counter_mutex->lock();
         if (get_size_of_data_in_FS_blocks(size_of_data) > free_blocks){
             counter_mutex->unlock();
@@ -179,7 +180,7 @@ private:
 
     std::shared_ptr<std::mutex> counter_mutex;
     int number_of_name_blocks = 16384;
-    int number_of_free_name_blocks = 16384;
+    int number_of_free_name_blocks = 16382;
 
     int number_of_inodes = 1024;
     int number_of_free_inodes = 1024;

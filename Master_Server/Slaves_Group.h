@@ -45,6 +45,20 @@ struct slave_info{
     }
 };
 
+struct inverse_slave_info_map_comparator {
+    bool operator()(std::pair<const server_participant_ptr, slave_info> const&left,
+                    std::pair<const server_participant_ptr, slave_info> const&right) const {
+        return  right.second < left.second; // swap it so we would have reverse order sorted array
+    }
+};
+
+struct slave_info_map_comparator {
+    bool operator()(std::pair<const server_participant_ptr, slave_info> const&left,
+                    std::pair<const server_participant_ptr, slave_info> const&right) const {
+        return  left.second < right.second ; // swap it so we would have reverse order sorted array
+    }
+};
+
 struct file_bindings{
     file_bindings(){};
     file_bindings(int storage_slave_id_, int size_of_data_) :
@@ -53,9 +67,22 @@ struct file_bindings{
     int storage_slave_id;
     int index_of_file = -1;
     int size_of_data;
-    int size_of_file_in_blocks;
     std::shared_ptr<boost::shared_mutex> rw_mtx;
     std::shared_ptr<file_bindings> next_part = nullptr;
+    int n_of_further_parts_waiting_for_answer = 0;
+    std::unordered_map<int, std::pair< std::shared_ptr< boost::mutex >, int > > n_of_further_parts_waiting_for_answer_for_read;
+    int size_in_parts = 0;
+};
+
+struct read_file_constructor{
+    read_file_constructor(){};
+    read_file_constructor(int size_in_parts) :
+            n_of_further_parts_waiting_for_answer(size_in_parts), mtx(new boost::mutex()) {
+        parts_of_string = std::vector<std::string *>(size_in_parts);
+    }
+    int n_of_further_parts_waiting_for_answer;
+    std::shared_ptr<boost::mutex> mtx;
+    std::vector<std::string *> parts_of_string;
 };
 
 
@@ -75,15 +102,24 @@ public:
 
   std::string get_fs_info();
 
-  int count_max_size_of_data_by_number_of_blocks(int size_of_data);
-
   ~Slaves_Group() = default;
+
+private:
+    int count_max_size_of_data_by_number_of_blocks(int size_of_data);
+
+    int  get_size_of_data_in_fs_blocks(int size_of_data);
+
+    void send_data_to_slave(int inode_id, server_participant_ptr slave, std::string message, file_bindings &fb);
+
+
 
 private:
     std::unordered_map<int, file_bindings> files;
     int n_of_all_blocks = 0;
     int all_free_blocks = 0;
     std::unordered_map<server_participant_ptr, slave_info> slaves_info;
+
+    std::unordered_map<int, std::unordered_map<int , read_file_constructor >> file_constructors;
 
     std::shared_ptr<boost::mutex> counter_mutex;
 };

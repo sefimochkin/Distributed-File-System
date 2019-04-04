@@ -91,23 +91,24 @@ private:
         if (command.find(std::string("to_store")) == 0){
             printf("storing: %s\n", second_arg.c_str());
             int index = fs.store_data_blocks(second_arg);
-            int size_of_file_in_blocks = fs.get_size_of_data_in_FS_blocks(second_arg.length());
-            std::string answer = "command: stored_whole id: " + std::to_string(client_id) + " first_arg: " + first_arg + " second_arg: " + std::to_string(index) + " " + std::to_string(size_of_file_in_blocks);
+            std::string answer = "command: stored_whole id: " + std::to_string(client_id) + " first_arg: " + first_arg + " second_arg: " + std::to_string(index) + " " + std::to_string(id);
             write_possible_sequence(answer);
         }
 
         if (command.find(std::string("to_read")) == 0){
             std::istringstream siss(second_arg);
             int size_of_data = -1;
+            int i_in_constructor = -1;
             std::string name_of_file;
 
             siss >> size_of_data;
+            siss >> i_in_constructor;
             siss >> name_of_file;
-            
+
             printf("reading: %s\n", message.c_str());
             std::string output = fs.read_data_blocks((unsigned int)std::stoi(first_arg), size_of_data);
 
-            std::string answer = "command: read_whole id: " + std::to_string(client_id) + " first_arg: " + name_of_file + " second_arg: " + output;
+            std::string answer = "command: read_whole id: " + std::to_string(client_id) + " first_arg: " + name_of_file + " second_arg: " + std::to_string(id) + " " + std::to_string(i_in_constructor) + " " + output;
             write_possible_sequence(answer);
         }
 
@@ -123,7 +124,7 @@ private:
 
             fs.free_data_blocks((unsigned int)std::stoi(first_arg), (unsigned int)std::stoi(second_arg));
 
-            std::string answer = "command: freed_whole id: " + std::to_string(client_id) + " first_arg: " + name_of_file + " second_arg: ";
+            std::string answer = "command: freed_whole id: " + std::to_string(client_id) + " first_arg: " + name_of_file + " second_arg: " +std::to_string(id);
             write_possible_sequence(answer);
         }
     }

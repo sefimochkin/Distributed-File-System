@@ -132,7 +132,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         answer = save_filesystem(name, (char *) filesystem);
     }
 
-    else if (command.find(std::string("fs_info")) == 0){
+    else if (command.find(std::string("info")) == 0){
         answer = get_fs_info();
     }
 
