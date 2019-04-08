@@ -231,10 +231,16 @@ char* touch(struct superblock *sb, const char* name, const char* input, struct i
 
 char* read_file(struct superblock *sb, const char* name, struct inode* directory, short int* failed, FS_Handler * fs_handler, int id){
     char* answer = NULL;
-    struct inode *inode = get_inode_by_name(sb, (char *) name, directory, answer);
+    if(directory == NULL) {
+        *failed = 2;
+        answer = "Something went wrong! Sorry, it's still buggy as hell";
+        return answer;
+    }
+
+    struct inode *inode = get_inode_by_name(sb, (char *) name, directory, &answer);
 
     if(inode != NULL) {
-        if(inode->is_directory){
+        if(inode->is_directory) {
             *failed = 1;
             answer = "Can't read directory!";
             return answer;

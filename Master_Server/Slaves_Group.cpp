@@ -7,6 +7,7 @@
 
 
 void Slaves_Group::parse(server_participant_ptr slave, std::string message){
+    printf("Slaves_Group::parse\n");
     if (message.find(std::string("started")) == 0) {
         (*slave).write_possible_sequence("fs_info");
     }
@@ -54,6 +55,7 @@ void Slaves_Group::parse(server_participant_ptr slave, std::string message){
 }
 
 void Slaves_Group::parse_command_and_do_something(std::string message){
+    printf("Slaves_Group::parse_command_and_do_something\n");
     std::istringstream iss(message);
     std::string command;
     std::string first_arg;
@@ -75,7 +77,11 @@ void Slaves_Group::parse_command_and_do_something(std::string message){
         iss >> first_arg;
     if (iss)
         iss >> trash;
-    std::getline(iss, second_arg);
+
+    if (iss.tellg() > 0)
+        second_arg = iss.str().substr(iss.tellg());
+    else
+        std::getline(iss, second_arg);
     if (second_arg.length() > 0)
         second_arg = second_arg.substr(1);
 
@@ -140,6 +146,7 @@ void Slaves_Group::parse_command_and_do_something(std::string message){
 
 
 void Slaves_Group::send_command(std::string message) {
+    printf("Slaves_Group::send_command\n");
     std::istringstream iss(message);
     std::string command;
     std::string first_arg;
@@ -161,7 +168,11 @@ void Slaves_Group::send_command(std::string message) {
         iss >> first_arg;
     if (iss)
         iss >> trash;
-    std::getline(iss, second_arg);
+
+    if (iss.tellg() > 0)
+        second_arg = iss.str().substr(iss.tellg());
+    else
+        std::getline(iss, second_arg);
     if (second_arg.length() > 0)
         second_arg = second_arg.substr(1);
 
@@ -203,6 +214,7 @@ void Slaves_Group::send_command(std::string message) {
         int inode_id = std::stoi(first_arg);
 
         files[inode_id].rw_mtx->lock_shared();
+
         int index_of_data = files[inode_id].index_of_file;
         int size_of_data = files[inode_id].size_of_data;
         int slave_id = files[inode_id].storage_slave_id;

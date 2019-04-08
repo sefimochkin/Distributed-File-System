@@ -21,7 +21,7 @@ public:
 
     FS_Handler();
 
-    std::string do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg);
+    std::string do_command(int client_id, const std::string& command, const std::string& first_arg, const std::string& second_arg, short &failed);
 
     void add_pointer_to_slaves_group(Server_Group *slaves_group);
 
@@ -46,7 +46,7 @@ public:
     };
 
 private:
-
+    void* filesystem;
     std::string check_file(bool &error);
     std::string check_name(int size_of_data, bool &error);
     std::string check_data(int size_of_data, bool &error);
@@ -59,7 +59,6 @@ private:
 
     char * name = const_cast<char *>("./fs_names_and_directories");
     std::unordered_map<int,  struct inode**> clients_cur_directories;
-    void* filesystem;
     struct inode* root;
     struct superblock* sb;
 

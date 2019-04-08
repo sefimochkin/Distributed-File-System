@@ -16,6 +16,7 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
 }
 
     void Clients_Group::parse_command_and_do_something(std::string message){
+        printf("Clients_Group::parse_command_and_do_something\n");
         std::istringstream iss(message);
         std::string command;
         std::string first_arg;
@@ -37,7 +38,11 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
             iss >> first_arg;
         if (iss)
             iss >> trash;
-        std::getline(iss, second_arg);
+
+        if (iss.tellg() > 0)
+            second_arg = iss.str().substr(iss.tellg());
+        else
+            std::getline(iss, second_arg);
         if (second_arg.length() > 0)
             second_arg = second_arg.substr(1);
         if (first_arg.find("second_arg:") == 0)
@@ -52,13 +57,22 @@ void Clients_Group::parse(server_participant_ptr client, std::string message){
         }
 
         else {
-            std::string answer = "command: print id: " + std::to_string(id) + " first_arg: _ second_arg: " + fs.do_command(id, command, first_arg, second_arg);
+            short error = 0;
+            std::string answer;
+            std::string fs_answer = fs.do_command(id, command, first_arg, second_arg, error);
+            if(!error)
+                answer = "command: print id: " + std::to_string(id) + " first_arg: _ second_arg: " + fs_answer;
+            else
+                answer = "command: error_print id: " + std::to_string(id) + " first_arg: _ second_arg: " + fs_answer;
+
             printf("sending answer: %s\n", answer.c_str());
             participants_[id]->write_possible_sequence(answer);
         }
     }
 
 void Clients_Group::send_command(std::string message) {
+    printf("Clients_Group::send_command\n");
+
     int client_id = -1;
 
     std::istringstream iss(message);
@@ -82,7 +96,9 @@ void Clients_Group::send_command(std::string message) {
         iss >> first_arg;
     if (iss)
         iss >> trash;
-    std::getline(iss, second_arg);
+    second_arg = iss.str().substr(iss.tellg());
+
+    //std::getline(iss, second_arg);
     if (second_arg.length() > 0)
         second_arg = second_arg.substr(1);
 

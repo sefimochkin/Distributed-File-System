@@ -47,7 +47,7 @@ void open_file(FS_Handler *fs_handler, int id, int inode_id);
 
 char* get_file_names_from_directory(struct superblock *sb, struct inode* directory, FS_Handler *fs_handler);
 
-struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* directory, char* answer);
+struct inode* get_inode_by_name(struct superblock *sb, char*name, struct inode* directory, char** answer);
 short check_doubling_name(struct superblock *sb, char*name, struct inode* directory);
 
 int get_size_of_data_in_blocks(struct superblock *sb, int size_of_data);

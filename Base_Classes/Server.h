@@ -152,7 +152,6 @@ protected:
         else{
             continuous_message += message;
         }
-
     }
 
     virtual void parse_answer_and_reply(const std::string &message) = 0;
@@ -164,7 +163,6 @@ protected:
     Server_Message read_msg_;
     chat_message_queue write_msgs_;
     std::string continuous_message;
-
 };
 
 

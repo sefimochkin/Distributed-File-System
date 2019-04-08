@@ -22,11 +22,6 @@
 using boost::asio::ip::tcp;
 
 
-//void send_messages_from_queue(server_participant_ptr server, Server_Message message);
-//void send_messages_from_queue(std::queue<Server_And_Message> *output_queue, std::mutex *output_queue_mutex);
-
-
-//void receive_messages(std::vector<server_participant_ptr> slave_servers, boost::asio::io_service& io_service);
 
 class Master_Server
 {
@@ -43,12 +38,11 @@ private:
     tcp::socket socket_;
     Slaves_Group slaves_group;
     Clients_Group clients_group;
-    int ping_period = 25;
+    int ping_period = 60;
     boost::asio::deadline_timer ping_timer;
     boost::asio::io_service::strand strand;
     boost::thread_group worker_threads;
-    int number_of_worker_threads = 4;
-
+    int number_of_worker_threads = 1; //that's because i have little experience in concurrency and i fucked up with it!
 
 };
 

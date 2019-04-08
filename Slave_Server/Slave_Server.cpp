@@ -45,7 +45,11 @@ void Slave_Server::parse_command_and_do_something(const std::string &message){
         iss >> first_arg;
     if (iss)
         iss >> trash;
-    std::getline(iss, second_arg);
+
+    if (iss.tellg() > 0)
+        second_arg = iss.str().substr(iss.tellg());
+    else
+        std::getline(iss, second_arg);
     if (second_arg.length() > 0)
         second_arg = second_arg.substr(1);
 

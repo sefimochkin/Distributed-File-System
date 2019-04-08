@@ -7,11 +7,10 @@
 
 Client_Server::Client_Server(boost::asio::io_service& io_service,
     tcp::resolver::iterator endpoint_iterator) :
-    Server(io_service, endpoint_iterator)
-    {
-    Server_Message msg = Server_Message();
-    msg.make_message("client");
-    write(msg);
+    Server(io_service, endpoint_iterator) {
+        Server_Message msg = Server_Message();
+        msg.make_message("client");
+        write(msg);
     }
 
 
@@ -69,7 +68,11 @@ std::string Client_Server::parse_user_input_and_make_command(const std::string &
         iss >> command;
     if (iss)
         iss >> first_arg;
-    std::getline(iss, second_arg);
+
+    if (iss.tellg() > 0)
+        second_arg = iss.str().substr(iss.tellg());
+    else
+        std::getline(iss, second_arg);
     if (second_arg.length() > 0)
         second_arg = second_arg.substr(1);
 
@@ -86,12 +89,12 @@ void Client_Server::parse_answer_and_reply(const std::string &message) {
     else if (message.find(std::string("id")) == 0){
     sscanf(message.c_str(), "id: %d", &id);
     }
+
     else if (message.find(std::string("command")) == 0) {
     parse_command_and_do_something(message);
     }
-
-
 }
+
 void Client_Server::parse_command_and_do_something(const std::string& message) {
     std::istringstream iss(message);
     std::string command;
@@ -114,12 +117,20 @@ void Client_Server::parse_command_and_do_something(const std::string& message) {
         iss >> first_arg;
     if (iss)
         iss >> trash;
-    std::getline(iss, second_arg);
+
+    if (iss.tellg() > 0)
+        second_arg = iss.str().substr(iss.tellg());
+    else
+        std::getline(iss, second_arg);
     if (second_arg.length() > 0)
         second_arg = second_arg.substr(1);
 
     if (command.find(std::string("print")) == 0) {
         printf("%s\n", second_arg.c_str());
+    }
+    else if (command.find("error_print") == 0){
+        printf("%s\n", second_arg.c_str());
+        waiting_on_read.unlock();
     }
     else if (command.find(std::string("read_whole")) == 0) {
         if (waiting_on_export) {

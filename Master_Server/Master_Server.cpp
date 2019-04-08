@@ -23,7 +23,7 @@ Master_Server::Master_Server(boost::asio::io_service& io_service,const tcp::endp
 
 void Master_Server::ping(){
     slaves_group.ping();
-    clients_group.ping();
+    //clients_group.ping();
 
     printf("Slave Server#: %d\n", slaves_group.len());
 

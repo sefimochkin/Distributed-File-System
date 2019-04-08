@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
 
         tcp::resolver resolver(io_service);
         auto endpoint_iterator = resolver.resolve({ boost::asio::ip::address::from_string("127.0.0.1"), 8000 });
+        //84.201.143.118
         Client_Server client(io_service, endpoint_iterator);
 
         std::thread t([&io_service](){ io_service.run(); });
@@ -40,7 +41,7 @@ int main(int argc, char* argv[])
         if (second_argument.length() > 0)
             second_argument = second_argument.substr(1);
 
-        while(command.find("finish") != 0){
+        while(command.find("exit") != 0){
             client.gain_control();
             client.input_message(command, first_argument, second_argument);
 
