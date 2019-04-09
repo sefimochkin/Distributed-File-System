@@ -52,7 +52,7 @@ protected:
     enum { max_recent_msgs = 100 };
     chat_message_queue recent_msgs_;
     std::atomic<int> current_id = {0};
-    std::unordered_map<server_participant_ptr, std::string> continuous_messages;
+    std::unordered_map<server_participant_ptr, std::shared_ptr<std::string>> continuous_messages;
     Server_Group *other_group_;
 
 };

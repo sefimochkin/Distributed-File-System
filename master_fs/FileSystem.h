@@ -25,12 +25,14 @@ struct inode * open_filesystem(char* file_system_name, char* filesystem, FS_Hand
 char* save_filesystem(char* file_system_name, char* filesystem);
 char* close_filesystem(char* file_system_name, char* filesystem);
 
-char* ls(struct superblock *sb, struct inode* directory, FS_Handler *fs_handler);
-char* mkdirf(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler);
-char* rm_dir(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler, int id);
-char* rm(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler, int id);
-char* touch(struct superblock *sb, const char* name, const char* input, struct inode* directory, FS_Handler *fs_handler, int id);
-char* read_file(struct superblock *sb, const char* name, struct inode* directory, short * failed, FS_Handler * fs_handler, int id);
+short is_directory_with_files(struct inode** directory);
+
+char* ls(struct superblock *sb, struct inode** directory, FS_Handler *fs_handler);
+char* mkdirf(struct superblock *sb, const char* name, struct inode** directory, FS_Handler *fs_handler);
+char* rm_dir(struct superblock *sb, const char* name, struct inode** directory, FS_Handler *fs_handler, int id);
+char* rm(struct superblock *sb, const char* name, struct inode** directory, FS_Handler *fs_handler, int id);
+char* touch(struct superblock *sb, const char* name, const char* input, struct inode** directory, FS_Handler *fs_handler, int id);
+char* read_file(struct superblock *sb, const char* name, struct inode** directory, short * failed, FS_Handler * fs_handler, int id);
 char* cd(struct superblock *sb, const char*name, struct inode** current_directory, FS_Handler *fs_handler);
 
 #endif //FS_FILESYSTEM_H

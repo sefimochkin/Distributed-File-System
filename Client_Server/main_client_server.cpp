@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 
 
         tcp::resolver resolver(io_service);
-        auto endpoint_iterator = resolver.resolve({ boost::asio::ip::address::from_string("127.0.0.1"), 8000 });
+        auto endpoint_iterator = resolver.resolve({ boost::asio::ip::address::from_string("127.0.0.1"), 8080 });
         //84.201.143.118
         Client_Server client(io_service, endpoint_iterator);
 

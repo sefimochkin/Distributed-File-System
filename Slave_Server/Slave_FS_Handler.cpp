@@ -16,7 +16,7 @@ Slave_FS_Handler::Slave_FS_Handler(int number_of_blocks_, int number_of_free_blo
 
 unsigned int Slave_FS_Handler::store_data_blocks(std::string data){
     char * c_data =  const_cast<char*>(data.c_str());
-    return put_data_in_blocks(sb, c_data, static_cast<int>(strlen(data.c_str())));
+    return put_data_in_blocks(sb, c_data, static_cast<int>(data.length()));
 }
 
 std::string Slave_FS_Handler::read_data_blocks(unsigned int index_of_blocks, int size_of_data){

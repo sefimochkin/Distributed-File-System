@@ -1,7 +1,6 @@
 //
 // Created by Сергей Ефимочкин on 22.11.2018.
 //
-
 #include "Slaves_Group.h"
 #include <sstream>
 

@@ -43,10 +43,10 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
     std::string answer;
 
     if(command.find(std::string("ls")) == 0){
-        char* output = ls(sb, *clients_cur_directories[client_id], this);
+        char* output = ls(sb, clients_cur_directories[client_id], this);
         answer = std::string(output);
         std::replace( answer.begin(), answer.end(), '\n', ' ');
-        if((*clients_cur_directories[client_id])->number_of_files_in_directory > 0)
+        if(is_directory_with_files(clients_cur_directories[client_id]))
             free(output);
     }
 
@@ -58,7 +58,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer = check_directory(first_arg.length(), error);
             if (!error) {
                 add_file(first_arg.length());
-                answer = mkdirf(sb, first_arg.c_str(), *clients_cur_directories[client_id], this);
+                answer = mkdirf(sb, first_arg.c_str(), clients_cur_directories[client_id], this);
             }
         }
     }
@@ -68,7 +68,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not enough arguments!");
         else {
             rm_file(first_arg.length());
-            answer = rm_dir(sb, first_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
+            answer = rm_dir(sb, first_arg.c_str(), clients_cur_directories[client_id], this, client_id);
         }
     }
 
@@ -80,7 +80,8 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer = check_new_file(first_arg.length(), second_arg.length(), error);
             if (!error) {
                 add_file(first_arg.length());
-                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this,
+
+                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), clients_cur_directories[client_id], this,
                                client_id);
             }
         }
@@ -91,7 +92,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not enough arguments!");
         else {
             rm_file(first_arg.length());
-            answer = rm(sb, first_arg.c_str(), *clients_cur_directories[client_id], this, client_id);
+            answer = rm(sb, first_arg.c_str(), clients_cur_directories[client_id], this, client_id);
         }
     }
 
@@ -100,7 +101,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not enough arguments!");
         else {
             printf("client id: %d\n", client_id);
-            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
+            char *output = read_file(sb, first_arg.c_str(), clients_cur_directories[client_id], &failed, this, client_id);
             //if (!failed)
             answer =  std::string(output);
             if (failed == 2) {
@@ -127,7 +128,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer = check_new_file(first_arg.length(), second_arg.length(), error);
             if (!error) {
                 add_file(first_arg.length());
-                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), *clients_cur_directories[client_id], this,
+                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), clients_cur_directories[client_id], this,
                                client_id);
             }
         }
@@ -138,7 +139,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not enough arguments!");
         else {
             short failed = 0;
-            char *output = read_file(sb, first_arg.c_str(), *clients_cur_directories[client_id], &failed, this, client_id);
+            char *output = read_file(sb, first_arg.c_str(), clients_cur_directories[client_id], &failed, this, client_id);
             answer =  std::string(output);
             //if(failed != 1) {
             //    free(output);
@@ -204,7 +205,6 @@ void FS_Handler::free_data_in_slave(int id, int inode_id) {
     printf("FS_Handler::free_data_in_slave\n");
     std::string
             message = "command: to_free id: " + std::to_string(id) + " first_arg: " + std::to_string(inode_id) + " second_arg: ";
-    free(name);
     slaves_group_->send_command(message);
 }
 

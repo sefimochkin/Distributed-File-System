@@ -1,7 +1,6 @@
 //
 // Created by Сергей Ефимочкин on 21.11.2018.
 //
-
 #include "Inter_Server_Session.h"
 #include <boost/asio.hpp>
 

@@ -147,13 +147,21 @@ char* close_filesystem(char* file_system_name, char* filesystem){
     return answer;
 }
 
-char* ls(struct superblock *sb, struct inode* directory, FS_Handler *fs_handler){
-    return get_file_names_from_directory(sb, directory, fs_handler);
+short is_directory_with_files(struct inode** directory) {
+    if ((*directory)->number_of_files_in_directory)
+        return 1;
+    else
+        return 0;
 }
 
-char* mkdirf(struct superblock *sb, const char* name, struct inode* directory, FS_Handler * fs_handler){
+
+char* ls(struct superblock *sb, struct inode** directory, FS_Handler *fs_handler){
+    return get_file_names_from_directory(sb, *directory, fs_handler);
+}
+
+char* mkdirf(struct superblock *sb, const char* name, struct inode** directory, FS_Handler * fs_handler){
     char* answer;
-    if(check_doubling_name(sb, name, directory) == 0)
+    if(check_doubling_name(sb, name, *directory) == 0)
         answer = "File with this name already exists!";
     else{
         if(sb->number_of_free_inods < 0)
@@ -163,16 +171,16 @@ char* mkdirf(struct superblock *sb, const char* name, struct inode* directory, F
             answer = "No more free blocks! Remove something!";
 
         else {
-            create_directory(sb, name, (int) strlen(name), directory, fs_handler, 0);
+            create_directory(sb, name, (int) strlen(name), *directory, fs_handler, 0);
             answer = "";
         }
     }
     return answer;
 }
 
-char* rm_dir(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler, int id){
+char* rm_dir(struct superblock *sb, const char* name, struct inode** directory, FS_Handler *fs_handler, int id){
     char *answer = NULL;
-    struct inode* inode = get_inode_by_name(sb, (char *) name, directory, answer);
+    struct inode* inode = get_inode_by_name(sb, (char *) name, *directory, answer);
     if(inode != NULL)
         if(inode->is_directory) {
             if (try_lock_inode_mutex(fs_handler, inode)) {
@@ -190,9 +198,9 @@ char* rm_dir(struct superblock *sb, const char* name, struct inode* directory, F
     return answer;
 }
 
-char* rm(struct superblock *sb, const char* name, struct inode* directory, FS_Handler *fs_handler, int id){
+char* rm(struct superblock *sb, const char* name, struct inode** directory, FS_Handler *fs_handler, int id){
     char *answer = NULL;
-    struct inode *inode = get_inode_by_name(sb, (char *) name, directory, answer);
+    struct inode *inode = get_inode_by_name(sb, (char *) name, *directory, answer);
     if(inode != NULL)
         if(inode->is_directory)
             answer = "For deleting a directory use rmdir";
@@ -207,9 +215,9 @@ char* rm(struct superblock *sb, const char* name, struct inode* directory, FS_Ha
     return answer;
 }
 
-char* touch(struct superblock *sb, const char* name, const char* input, struct inode* directory, FS_Handler *fs_handler, int id){
+char* touch(struct superblock *sb, const char* name, const char* input, struct inode** directory, FS_Handler *fs_handler, int id){
     char* answer;
-    if(!check_doubling_name(sb, name, directory))
+    if(!check_doubling_name(sb, name, *directory))
         answer = "File with this name already exists!";
 
     else{
@@ -221,7 +229,7 @@ char* touch(struct superblock *sb, const char* name, const char* input, struct i
             answer = "No more free blocks! Remove something!";
 
         else {
-            create_file(sb, name, input, (int) strlen(name), (int) strlen(input), directory, fs_handler, id);
+            create_file(sb, name, input, (int) strlen(name), (int) strlen(input), *directory, fs_handler, id);
             answer = "";
         }
     }
@@ -229,7 +237,7 @@ char* touch(struct superblock *sb, const char* name, const char* input, struct i
 }
 
 
-char* read_file(struct superblock *sb, const char* name, struct inode* directory, short int* failed, FS_Handler * fs_handler, int id){
+char* read_file(struct superblock *sb, const char* name, struct inode** directory, short int* failed, FS_Handler * fs_handler, int id){
     char* answer = NULL;
     if(directory == NULL) {
         *failed = 2;
@@ -237,7 +245,7 @@ char* read_file(struct superblock *sb, const char* name, struct inode* directory
         return answer;
     }
 
-    struct inode *inode = get_inode_by_name(sb, (char *) name, directory, &answer);
+    struct inode *inode = get_inode_by_name(sb, (char *) name, *directory, &answer);
 
     if(inode != NULL) {
         if(inode->is_directory) {
