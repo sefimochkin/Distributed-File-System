@@ -5,6 +5,7 @@
 #include "FS_Handler.h"
 //#include "../master_fs/FileSystem.h"
 #include <algorithm>
+#include <memory>
 
 FS_Handler::FS_Handler(): fs_mutex(new std::mutex()), counter_mutex(new std::mutex()){
 
@@ -29,7 +30,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
     if(it == clients_cur_directories.end())
     {
         inode * root_copy = root;
-        clients_cur_directories[client_id] = &root_copy;
+        clients_cur_directories.insert({client_id, std::make_shared<struct inode *>(root_copy)});
     }
 
     int number_of_arguments = 0;
@@ -43,10 +44,10 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
     std::string answer;
 
     if(command.find(std::string("ls")) == 0){
-        char* output = ls(sb, clients_cur_directories[client_id], this);
+        char* output = ls(sb, clients_cur_directories[client_id].get(), this);
         answer = std::string(output);
         std::replace( answer.begin(), answer.end(), '\n', ' ');
-        if(is_directory_with_files(clients_cur_directories[client_id]))
+        if(is_directory_with_files(clients_cur_directories[client_id].get()))
             free(output);
     }
 
@@ -58,7 +59,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer = check_directory(first_arg.length(), error);
             if (!error) {
                 add_file(first_arg.length());
-                answer = mkdirf(sb, first_arg.c_str(), clients_cur_directories[client_id], this);
+                answer = mkdirf(sb, first_arg.c_str(), clients_cur_directories[client_id].get(), this);
             }
         }
     }
@@ -68,7 +69,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not enough arguments!");
         else {
             rm_file(first_arg.length());
-            answer = rm_dir(sb, first_arg.c_str(), clients_cur_directories[client_id], this, client_id);
+            answer = rm_dir(sb, first_arg.c_str(), clients_cur_directories[client_id].get(), this, client_id);
         }
     }
 
@@ -81,7 +82,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             if (!error) {
                 add_file(first_arg.length());
 
-                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), clients_cur_directories[client_id], this,
+                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), clients_cur_directories[client_id].get(), this,
                                client_id);
             }
         }
@@ -92,7 +93,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not enough arguments!");
         else {
             rm_file(first_arg.length());
-            answer = rm(sb, first_arg.c_str(), clients_cur_directories[client_id], this, client_id);
+            answer = rm(sb, first_arg.c_str(), clients_cur_directories[client_id].get(), this, client_id);
         }
     }
 
@@ -101,13 +102,14 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not enough arguments!");
         else {
             printf("client id: %d\n", client_id);
-            char *output = read_file(sb, first_arg.c_str(), clients_cur_directories[client_id], &failed, this, client_id);
+            char *output = read_file(sb, first_arg.c_str(), clients_cur_directories[client_id].get(), &failed, this, client_id);
             //if (!failed)
+            printf("failed: %d\n", failed);
             answer =  std::string(output);
-            if (failed == 2) {
-                inode * root_copy = root;
-                clients_cur_directories[client_id] = &root_copy;
-            }
+            //if (failed == 2) {
+            //    inode * root_copy = root;
+            //    clients_cur_directories[client_id] = &root_copy;
+            //}
 
         }
     }
@@ -116,7 +118,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
         if(number_of_arguments == 1)
             answer =  std::string("Not enough arguments!");
         else {
-            answer = cd(sb, first_arg.c_str(), clients_cur_directories[client_id], this);
+            answer = cd(sb, first_arg.c_str(), clients_cur_directories[client_id].get(), this);
         }
     }
 
@@ -128,7 +130,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer = check_new_file(first_arg.length(), second_arg.length(), error);
             if (!error) {
                 add_file(first_arg.length());
-                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), clients_cur_directories[client_id], this,
+                answer = touch(sb, first_arg.c_str(), second_arg.c_str(), clients_cur_directories[client_id].get(), this,
                                client_id);
             }
         }
@@ -139,7 +141,7 @@ std::string FS_Handler::do_command(int client_id, const std::string& command, co
             answer =  std::string("Not enough arguments!");
         else {
             short failed = 0;
-            char *output = read_file(sb, first_arg.c_str(), clients_cur_directories[client_id], &failed, this, client_id);
+            char *output = read_file(sb, first_arg.c_str(), clients_cur_directories[client_id].get(), &failed, this, client_id);
             answer =  std::string(output);
             //if(failed != 1) {
             //    free(output);
@@ -233,7 +235,7 @@ std::string FS_Handler::get_fs_info(){
 }
 
 void FS_Handler::client_leave(int client_id){
-    struct inode** current_directory = clients_cur_directories[client_id];
+    struct inode** current_directory = clients_cur_directories[client_id].get();
     while (&(sb->inods_array[(*current_directory)->index_of_owner_inode]) != sb->inods_array){ //going up to the root
         inode_locks[*current_directory]->unlock_shared();
         *current_directory = &(sb->inods_array[(*current_directory)->index_of_owner_inode]);

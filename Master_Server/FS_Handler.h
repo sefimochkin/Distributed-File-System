@@ -58,7 +58,7 @@ private:
     void rm_file(int size_of_name);
 
     char * name = const_cast<char *>("./fs_names_and_directories");
-    std::unordered_map<int,  struct inode**> clients_cur_directories;
+    std::unordered_map<int,  std::shared_ptr<struct inode* > > clients_cur_directories;
     struct inode* root;
     struct superblock* sb;
 
